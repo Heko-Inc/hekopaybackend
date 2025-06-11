@@ -6,7 +6,6 @@ const sequelize = require("./db");
 
 const connectDatabase = async () => {
 
-
     try {
 
         await sequelize.authenticate();
@@ -17,10 +16,9 @@ const connectDatabase = async () => {
 
         console.error("Unable to connect to the database:", error);
 
-        
+
     }
 
 }
-
 
 module.exports = connectDatabase;
