@@ -1,4 +1,4 @@
-# 🌍 Multi-Market Wallet & Transaction Platform
+# 🌍 Heko Pay
 
 A robust, modular fintech infrastructure enabling secure, compliant digital wallets, KYC verification, multi-currency transactions, journal-based accounting, and audit tracking across multiple markets.
 
