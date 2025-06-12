@@ -1,10 +1,8 @@
-const Router = require('express').Router;
+const Router = require('express').Router();
 
 
 
-const { registerMerchant } = require('./user.controller');
-
-
+const { registerMerchant,getMerchants } = require('./user.controller');
 
 
 
@@ -12,11 +10,7 @@ const { registerMerchant } = require('./user.controller');
 Router.post('/register', registerMerchant);
 
 
-
-
-
-
-
+Router.get('/getAll',getMerchants)
 
 
 

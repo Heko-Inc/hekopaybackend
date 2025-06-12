@@ -1,0 +1,19 @@
+{"ip":"::ffff:127.0.0.1","level":"error","message":"Error occurred insert or update on table \"users\" violates foreign key constraint \"users_market_id_fkey\"","method":"POST","stack":"Error\n    at Query.run (/home/ritahchanger/Desktop/HekoPay/backend_main/node_modules/sequelize/lib/dialects/postgres/query.js:50:25)\n    at /home/ritahchanger/Desktop/HekoPay/backend_main/node_modules/sequelize/lib/sequelize.js:315:28\n    at async PostgresQueryInterface.insert (/home/ritahchanger/Desktop/HekoPay/backend_main/node_modules/sequelize/lib/dialects/abstract/query-interface.js:308:21)\n    at async model.save (/home/ritahchanger/Desktop/HekoPay/backend_main/node_modules/sequelize/lib/model.js:2490:35)\n    at async User.create (/home/ritahchanger/Desktop/HekoPay/backend_main/node_modules/sequelize/lib/model.js:1362:12)\n    at async /home/ritahchanger/Desktop/HekoPay/backend_main/src/user/user.controller.js:36:16\n    at async /home/ritahchanger/Desktop/HekoPay/backend_main/src/middlewares/asyncMiddleware.js:4:9","statusCode":500,"timestamp":"2025-06-12 13:36:06","url":"/api/v1/user/register","user":"Unauthenticated"}
+{"level":"info","message":"Merchant registered successfully: johndoe@example.com","timestamp":"2025-06-12 17:09:57"}
+{"ip":"::ffff:127.0.0.1","level":"error","message":"Error occurred res.sendSuccess is not a function","method":"POST","stack":"TypeError: res.sendSuccess is not a function\n    at /home/ritahchanger/Desktop/HekoPay/backend_main/src/user/user.controller.js:67:14\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async /home/ritahchanger/Desktop/HekoPay/backend_main/src/middlewares/asyncMiddleware.js:4:9","statusCode":500,"timestamp":"2025-06-12 17:09:57","url":"/api/v1/user/register","user":"Unauthenticated"}
+{"level":"info","message":"Merchant registered successfully: ken@example.com","timestamp":"2025-06-12 17:13:00"}
+{"level":"info","message":"Fetched 2 merchants from database","timestamp":"2025-06-12 17:20:28"}
+{"level":"info","message":"Fetched 2 merchants from database","timestamp":"2025-06-12 17:24:28"}
+{"level":"info","message":"Fetched 2 merchants from database","timestamp":"2025-06-12 17:24:33"}
+{"level":"info","message":"Fetched 1 merchants from database","timestamp":"2025-06-12 17:25:02"}
+{"level":"info","message":"Fetched 1 merchants from database","timestamp":"2025-06-12 17:25:07"}
+{"level":"info","message":"Fetched 1 merchants from database","timestamp":"2025-06-12 17:25:20"}
+{"level":"info","message":"Fetched 1 merchants from database","timestamp":"2025-06-12 17:25:24"}
+{"level":"info","message":"Fetched 1 merchants from database","timestamp":"2025-06-12 17:25:25"}
+{"level":"info","message":"Fetched 1 merchants from database","timestamp":"2025-06-12 17:25:26"}
+{"level":"info","message":"Fetched 1 merchants from database","timestamp":"2025-06-12 17:25:26"}
+{"level":"info","message":"Fetched 1 merchants from database","timestamp":"2025-06-12 17:25:27"}
+{"level":"info","message":"Fetched 1 merchants from database","timestamp":"2025-06-12 17:25:36"}
+{"level":"info","message":"Fetched 2 merchants from database","timestamp":"2025-06-12 17:25:41"}
+{"level":"info","message":"Merchant registered successfully: john@example.com","timestamp":"2025-06-12 17:27:37"}
+{"level":"info","message":"Fetched 3 merchants from database","timestamp":"2025-06-12 17:27:44"}
