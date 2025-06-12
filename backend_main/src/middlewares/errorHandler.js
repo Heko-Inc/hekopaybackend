@@ -1,21 +1,39 @@
-const logger = require("../utils/logger"); // Adjust path as needed
+const logger = require("../utils/logger");
 
-async function errorHandler(err, req, res, next) {
-  let statusCode = err.statusCode || 500;
-  // const endpoint = req.originalUrl; // Gets the triggered API endpoint
-  // const method = req.method;
-  // const requestBody = JSON.stringify(req.body); // Convert body to string for logging
 
-  // if (statusCode === 500) {
-  //   // Log internal server errors
-  //   logger.error(`Internal Server Error: ${err} | Endpoint: ${method} ${endpoint} | Request Body: ${requestBody}`);
-  // } else {
-  //   // Log client errors
-  //   logger.warn(`Client Error: ${err} | Endpoint: ${method} ${endpoint} | Request Body: ${requestBody}`);
-  // }
 
-  // Send error response
-  res.sendError(err, statusCode);
+
+function errorHandler(err, req, res, next) {
+
+
+  const statusCode = err.statusCode || 500;
+
+
+
+
+  // Log the full error details
+  logger.error('Error occurred', {
+
+    message: err.message,
+    stack: err.stack,
+    statusCode,
+    method: req.method,
+    url: req.originalUrl,
+    ip: req.ip,
+    user: req.user ? req.user.id : 'Unauthenticated'
+    
+  });
+
+  // Determine what to send back
+  const response = {
+    success: false,
+    message: err.message || 'Internal Server Error',
+    ...(process.env.NODE_ENV !== 'production' && {
+      stack: err.stack
+    }),
+  };
+
+  res.status(statusCode).json(response);
 }
 
 module.exports = errorHandler;
