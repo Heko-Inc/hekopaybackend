@@ -24,7 +24,7 @@ const { Op } = require("sequelize");
 require("dotenv").config();
 
 
-const URL = process.env.BACKEND_URL;
+
 
 const registerMerchant = asyncMiddleware(async (req, res, next) => {
   const {

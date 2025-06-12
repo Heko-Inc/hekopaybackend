@@ -2,14 +2,18 @@ const Router = require("express").Router()
 
 
 
-const { registerWallet } = require("./wallet.controller");
-
+const { registerWallet,addWalletBalance} = require("./wallet.controller");
 
 
 Router.post('/register',registerWallet)
 
 
+Router.post('/add/balance',addWalletBalance)
 
 
 
-module.exports
+// Router.post('/get',fetchAllWallets)
+
+
+
+module.exports = Router
