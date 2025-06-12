@@ -1,20 +1,20 @@
 const { Sequelize, DataTypes } = require('sequelize');
 
 
-const { DATABASE_URL } = require('../config/database/db');
+const { DATABASE_URL } = require('../database/db');
 
 const sequelize = new Sequelize(DATABASE_URL);
 
-const User = require('./User')(sequelize, DataTypes);
-const Market = require('./Market')(sequelize, DataTypes);
-const Currency = require('./Currency')(sequelize, DataTypes);
-const Wallet = require('./Wallet')(sequelize, DataTypes);
-const WalletAuditTrail = require('./WalletAuditTrail')(sequelize, DataTypes);
-const Transaction = require('./Transaction')(sequelize, DataTypes);
-const JournalEntry = require('./JournalEntry')(sequelize, DataTypes);
-const JournalEntryApproval = require('./JournalEntryApproval')(sequelize, DataTypes);
-const KycDocumentType = require('./KycDocumentType')(sequelize, DataTypes);
-const KycSubmission = require('./KycSubmission')(sequelize, DataTypes);
+const User = require('../../user/user.model')(sequelize, DataTypes);
+const Market = require('../../market/market.model')(sequelize, DataTypes);
+const Currency = require('../../currency/currency.model')(sequelize, DataTypes);
+const Wallet = require('../../wallet/wallet.model')(sequelize, DataTypes);
+const WalletAuditTrail = require('../../wallet/walletAuditTrail.model')(sequelize, DataTypes);
+const Transaction = require('../../transaction/transaction.model')(sequelize, DataTypes);
+const JournalEntry = require('../../journal/journalEntry.model')(sequelize, DataTypes);
+const JournalEntryApproval = require('../../journal/journalApproval.model')(sequelize, DataTypes);
+const KycDocumentType = require('../../kyc/kycDocumentType.model')(sequelize, DataTypes);
+const KycSubmission = require('../../kyc/kycSubmission.model')(sequelize, DataTypes);
 
 // Associations
 User.belongsTo(Market, { foreignKey: 'market_id' });
@@ -41,6 +41,7 @@ JournalEntryApproval.belongsTo(JournalEntry, { foreignKey: 'journal_entry_id' })
 KycDocumentType.belongsTo(Market, { foreignKey: 'market_id' });
 KycSubmission.belongsTo(User, { foreignKey: 'user_id' });
 KycSubmission.belongsTo(KycDocumentType, { foreignKey: 'document_type_id' });
+
 
 // Export
 module.exports = {
