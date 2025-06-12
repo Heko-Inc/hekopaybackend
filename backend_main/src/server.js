@@ -28,6 +28,9 @@ app.use('/api/v1/user', UsersRoute)
 app.use('/api/v1/market',MarketRoutes);
 
 
+app.use('/api/v1/wallet',require('./wallet/wallet.routes'))
+
+
 
 app.use(errorHandler);
 
