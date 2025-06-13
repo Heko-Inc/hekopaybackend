@@ -1,74 +1,178 @@
-const { Wallet } = require("../config/modelsConfig/index")
+const { Wallet } = require("../config/modelsConfig/index");
 
 const addBalanceToWallet = async ({ wallet_id, amount, performed_by }) => {
 
-    console.log(wallet_id,amount,performed_by)
+  console.log(wallet_id, amount, performed_by);
 
-    if (!wallet_id || !amount || isNaN(amount)) {
+  if (!wallet_id || !amount || isNaN(amount)) {
+    const error = new Error("wallet_id and valid amount are required.");
 
-      const error = new Error("wallet_id and valid amount are required.");
+    error.statusCode = 400;
 
-      error.statusCode = 400;
+    throw error;
+  }
+
+  const wallet = await Wallet.findOne({ where: { id: wallet_id } });
+
+  if (!wallet) {
+    const error = new Error("Wallet not found.");
+
+    error.statusCode = 404;
+
+    throw error;
+  }
+
+  if (!wallet.is_active || wallet.is_frozen) {
+    const error = new Error("Cannot add balance to inactive or frozen wallet.");
+
+    error.statusCode = 403;
+
+    throw error;
+  }
+
+  wallet.balance = parseFloat(wallet.balance) + parseFloat(amount);
+
+  wallet.updated_at = new Date();
+
+  await wallet.save();
+
+  return {
+    message: "Balance added successfully.",
+
+    balance: wallet.balance,
+
+    wallet_id: wallet.id,
+
+    updated_at: wallet.updated_at,
+
+    performed_by,
+  };
+};
 
 
-      throw error;
-    }
-  
-    
-    const wallet = await Wallet.findOne({ where: { id: wallet_id } });
-  
-    if (!wallet) {
 
-      const error = new Error("Wallet not found.");
+const getAllWallets = async () => {
+  return await Wallet.findAll({
+    order: [["created_at", "DESC"]],
+  });
+};
 
-      error.statusCode = 404;
 
-      throw error;
-    }
-  
-    if (!wallet.is_active || wallet.is_frozen) {
 
-      const error = new Error("Cannot add balance to inactive or frozen wallet.");
 
-      error.statusCode = 403;
+// freezing account
 
-      throw error;
-    }
-  
-    wallet.balance = parseFloat(wallet.balance) + parseFloat(amount);
 
-    wallet.updated_at = new Date();
-  
-    await wallet.save();
-  
-    return {
+const freezeWalletService = async ({ walletId, reason, performedBy }) => {
 
-      message: "Balance added successfully.",
+  if (!walletId || !reason || !performedBy) {
 
-      balance: wallet.balance,
+    throw {
 
-      wallet_id: wallet.id,
+      status: 400,
 
-      updated_at: wallet.updated_at,
+      message: "walletId, reason, and performedBy are required.",
 
-      performed_by,
     };
+
+  }
+
+  const wallet = await Wallet.findOne({ where: { id: walletId } });
+
+  if (!wallet) {
+
+    throw { status: 404, message: "Wallet not found." };
+
+  }
+
+  if (!wallet.is_active) {
+
+    throw { status: 403, message: "Cannot freeze an inactive wallet." };
+
+  }
+
+  if (wallet.is_frozen) {
+
+    throw { status: 409, message: "Wallet is already frozen." };
+
+  }
+
+  wallet.is_frozen = true;
+  wallet.frozen_reason = reason;
+  wallet.frozen_at = new Date();
+  wallet.frozen_by = performedBy;
+  wallet.updated_at = new Date();
+
+  await wallet.save();
+
+  return {
+    message: "Wallet frozen successfully.",
+    wallet_id: wallet.id,
+    frozen_at: wallet.frozen_at,
+    frozen_by: wallet.frozen_by,
+    frozen_reason: wallet.frozen_reason,
   };
-  
+};
 
-  const getAllWallets = async () => {
 
-    const wallets = await Wallet.findAll({
+const getWalletByIdService = async (walletId) => {
+  if (!walletId) {
+    throw { status: 400, message: "Wallet ID is required." };
+  }
 
-      order: [['created_at', 'DESC']],
+  const wallet = await Wallet.findOne({ where: { id: walletId } });
 
-    });
+  if (!wallet) {
+    throw { status: 404, message: "Wallet not found." };
+  }
 
-    return wallets;
+  return wallet;
+};
+
+
+
+const unfreezeWalletService = async ({ walletId, performedBy }) => {
+  if (!walletId || !performedBy) {
+    throw {
+      status: 400,
+      message: "walletId and performedBy are required.",
+    };
+  }
+
+  const wallet = await Wallet.findOne({ where: { id: walletId } });
+
+  if (!wallet) {
+    throw { status: 404, message: "Wallet not found." };
+  }
+
+  if (!wallet.is_active) {
+    throw { status: 403, message: "Cannot unfreeze an inactive wallet." };
+  }
+
+  if (!wallet.is_frozen) {
+    throw { status: 409, message: "Wallet is not currently frozen." };
+  }
+
+  wallet.is_frozen = false;
+  wallet.frozen_reason = null;
+  wallet.frozen_at = null;
+  wallet.frozen_by = null;
+  wallet.updated_at = new Date();
+
+  await wallet.save();
+
+  return {
+    message: "Wallet unfrozen successfully.",
+    wallet_id: wallet.id,
+    unfrozen_at: wallet.updated_at,
+    unfrozen_by: performedBy,
   };
+};
 
-
-  module.exports = {
-    addBalanceToWallet,
-    getAllWallets
-  };
+module.exports = {
+  addBalanceToWallet,
+  getAllWallets,
+  freezeWalletService,
+  getWalletByIdService,
+  unfreezeWalletService
+};

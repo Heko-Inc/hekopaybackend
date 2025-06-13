@@ -1,19 +1,30 @@
-const Router = require("express").Router()
+const Router = require("express").Router();
+
+const {
+  registerWallet,
+  addWalletBalance,
+  getWallets,
+  freezeWallet,
+  getWalletById,
+  unfreezeWalletController,
+} = require("./wallet.controller");
 
 
-
-const { registerWallet,addWalletBalance} = require("./wallet.controller");
-
-
-Router.post('/register',registerWallet)
+Router.post("/register", registerWallet);
 
 
-Router.post('/add/balance',addWalletBalance)
+Router.post("/add/balance", addWalletBalance);
 
 
+Router.post("/freeze", freezeWallet);
 
-// Router.post('/get',fetchAllWallets)
+Router.post("/unfreeze", unfreezeWalletController);
 
 
+Router.get("/get", getWallets);
 
-module.exports = Router
+
+Router.get("/get/:walletId", getWalletById);
+
+
+module.exports = Router;
