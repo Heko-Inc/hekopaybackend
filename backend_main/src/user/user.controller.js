@@ -24,8 +24,6 @@ const { Op } = require("sequelize");
 require("dotenv").config();
 
 
-
-
 const registerMerchant = asyncMiddleware(async (req, res, next) => {
   const {
     name,
