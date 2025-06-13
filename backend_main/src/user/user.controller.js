@@ -20,10 +20,9 @@ const { User } = require("../config/modelsConfig/index");
 const { Op } = require("sequelize");
 
 
+const {  loginMerchantService, getSingleMerchantService }  = require("./user.service");
 
 require("dotenv").config();
-
-
 
 
 const registerMerchant = asyncMiddleware(async (req, res, next) => {
@@ -158,4 +157,49 @@ const getMerchants = asyncMiddleware(async (req, res) => {
 
 
 
-module.exports = { registerMerchant,getMerchants };
+const loginMerchant = asyncMiddleware(async (req, res, next) => {
+
+  try{
+
+    const { email,password } = req.body;
+
+    const { user, token } = await loginMerchantService({ email, password });
+
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', 
+      sameSite: 'Strict', 
+      maxAge: 7 * 24 * 60 * 60 * 1000, 
+    });
+
+    logger.info(`Merchant logged in: ${email}`);
+
+    return res.status(200).json({
+      success: true,
+      message: "Login successful.",
+      token,
+      user,
+    });
+
+  }catch(error){
+
+    logger.warn(`Login failed for ${req.body.email || "unknown user"}`);
+    next(error);
+
+  }
+
+})
+
+const getSingleMerchant = asyncMiddleware(async (req, res, next) => {
+  const { id } = req.params;
+
+  const user = await getSingleMerchantService(id);
+
+  return res.status(200).json({
+    message: "Merchant retrieved successfully.",
+    user,
+  });
+});
+
+
+module.exports = { registerMerchant, getMerchants, loginMerchant,getSingleMerchant };
