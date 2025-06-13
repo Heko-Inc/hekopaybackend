@@ -2,9 +2,12 @@ const axios = require('axios')
 
 require('dotenv').config()
 
+const asyncMiddleware = require('../middlewares/asyncMiddleware')
+
 var token = ''
 
 const createToken = async (req, res, next) => {
+  
   const Authorization = `Basic ${new Buffer.from(
     `${process.env.SAFARICOM_CONSUMER_KEY}:${process.env.SAFARICOM_CONSUMER_SECRET}`
   ).toString('base64')}`
@@ -60,7 +63,7 @@ const stkPush = async (req, res) => {
       PartyA: `254${phone}`,
       PartyB: 174379,
       PhoneNumber: `254${phone}`,
-      CallBackURL: 'https://mydomain.com/path',
+      CallBackURL: 'https://6a43-41-90-187-124.ngrok-free.app/api/v1/stk/push/callback',
       AccountReference: 'Mpesa Test',
       TransactionDesc: 'Testing stk push'
     }
@@ -79,19 +82,57 @@ const stkPush = async (req, res) => {
   }
 }
 
-const handleMpesaCallback = async (req, res) => {
+
+const handleMpesaCallback = asyncMiddleware(async (req, res, next) => {
   try {
-    const callbackData = req.body
+    const callbackData = req.body;
 
-    console.log('Callback data received! ', callbackData)
+    console.log('🔔 M-PESA Callback Received:', JSON.stringify(callbackData, null, 2));
 
-    res.status(200).json({ message: 'Callback received successfully' })
+    const {
+      Body: {
+        stkCallback: {
+          MerchantRequestID,
+          CheckoutRequestID,
+          ResultCode,
+          ResultDesc,
+          CallbackMetadata
+        }
+      }
+    } = callbackData;
+
+    const phone = CallbackMetadata?.Item?.find(i => i.Name === 'PhoneNumber')?.Value;
+
+    const amount = CallbackMetadata?.Item?.find(i => i.Name === 'Amount')?.Value;
+
+    const mpesaReceiptNumber = CallbackMetadata?.Item?.find(i => i.Name === 'MpesaReceiptNumber')?.Value;
+
+    console.log('✅ Payment Info:');
+
+    console.log('MerchantRequestID:', MerchantRequestID);
+
+    console.log('CheckoutRequestID:', CheckoutRequestID);
+
+    console.log('ResultCode:', ResultCode);
+
+    console.log('ResultDesc:', ResultDesc);
+
+    console.log('Amount:', amount);
+
+    console.log('MpesaReceiptNumber:', mpesaReceiptNumber);
+
+    console.log('PhoneNumber:', phone);
+
+    res.status(200).json({
+
+      message: 'M-PESA callback received successfully'
+
+    });
   } catch (error) {
-    console.error(error)
-    res.status(500).json(error.message)
+    console.error('❌ Error handling M-PESA callback:', error);
+    next(error); 
   }
-}
+});
 
-// router.post('/', createToken, stkPush)
 
-module.exports = {createToken, stkPush}
+module.exports = {createToken, stkPush, handleMpesaCallback}
