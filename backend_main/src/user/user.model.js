@@ -1,5 +1,7 @@
 module.exports = (sequelize, DataTypes) => {
-    const User = sequelize.define("User", {
+  const User = sequelize.define(
+    "User",
+    {
       id: {
         type: DataTypes.UUID,
         defaultValue: DataTypes.UUIDV4,
@@ -16,21 +18,19 @@ module.exports = (sequelize, DataTypes) => {
       business_type: DataTypes.STRING,
 
       market_id: {
-
         type: DataTypes.UUID,
 
-        references: { model: 'markets', key: 'id' },
-
+        references: { model: "markets", key: "id" },
       },
 
       default_currency: {
-
         type: DataTypes.STRING(3),
-
       },
-
+      password: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
       created_at: {
-        
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,
       },
@@ -38,11 +38,12 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,
       },
-    }, {
-      tableName: 'users',
+    },
+    {
+      tableName: "users",
       timestamps: false,
-    });
-  
-    return User;
-  };
-  
+    }
+  );
+
+  return User;
+};

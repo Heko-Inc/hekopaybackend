@@ -2,7 +2,7 @@ const { Wallet } = require("../config/modelsConfig/index");
 
 const asyncMiddleware = require("../middlewares/asyncMiddleware");
 
-const { addBalanceToWallet } = require("./wallet.service")
+const { addBalanceToWallet,  getAllWallets, freezeWalletService,getWalletByIdService, unfreezeWalletService } = require("./wallet.service")
 
 const logger = require("../utils/logger");
 
@@ -94,30 +94,60 @@ const addWalletBalance = asyncMiddleware(async (req, res, next) => {
 });
 
 
-// const fetchAllWallets = asyncWrapper(async (req, res, next) => {
+const getWallets = asyncMiddleware(async (req, res, next) => {
 
-//   try{
+  const wallets = await getAllWallets();
 
-//     const wallets = await getAllWallets();
+  return res.status(200).json({
+    message: "Wallets retrieved successfully.",
+    wallets,
+  });
+});
 
-//     res.status(200).json({
 
-//       success: true,
-   
-//       message: 'Wallets fetched successfully.',
 
-//       wallets,
+const getWalletById = asyncMiddleware(async (req, res, next) => {
+  const { walletId } = req.params;
 
-//     });
+  const wallet = await getWalletByIdService(walletId);
 
-//   }catch(error) {
+  return res.status(200).json({
+    message: "Wallet retrieved successfully.",
+    wallet,
+  });
+});
 
-//     logger.error(`Fetch all wallets failed: ${error.message}`);
 
-//     return next(error);
+// FreezedWallets
 
-//   }
-  
-// });
 
-module.exports = { registerWallet, addWalletBalance };
+const freezeWallet = asyncMiddleware(async (req, res, next) => {
+
+  const { walletId, reason, performedBy } = req.body;
+
+  const result = await freezeWalletService({ walletId, reason, performedBy });
+
+  return res.status(200).json(result);
+
+});
+
+
+const unfreezeWalletController = asyncMiddleware(async (req, res, next) => {
+  try {
+    const { walletId, performedBy } = req.body;
+
+    const result = await unfreezeWalletService({ walletId, performedBy });
+
+    res.status(200).json({
+      success: true,
+      message: result.message,
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+
+
+module.exports = { registerWallet, addWalletBalance,getWallets,freezeWallet,getWalletById,unfreezeWalletController };

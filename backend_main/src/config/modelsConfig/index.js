@@ -50,3 +50,13 @@ module.exports = {
   Transaction, JournalEntry, JournalEntryApproval,
   KycDocumentType, KycSubmission
 };
+
+
+// sequelize
+//   .sync({ alter: true }) 
+//   .then(() => {
+//     console.log('✅ All models synchronized (altered) successfully.');
+//   })
+//   .catch((err) => {
+//     console.error('❌ Error syncing models:', err);
+//   });
