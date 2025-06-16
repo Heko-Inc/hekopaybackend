@@ -1,15 +1,7 @@
 const logger = require("../utils/logger");
 
-
-
-
 function errorHandler(err, req, res, next) {
-
-
   const statusCode = err.statusCode || 500;
-
-
-
 
   // Log the full error details
   logger.error('Error occurred', {
@@ -21,9 +13,14 @@ function errorHandler(err, req, res, next) {
     url: req.originalUrl,
     ip: req.ip,
     user: req.user ? req.user.id : 'Unauthenticated'
-    
-  });
 
+  });
+  // Use sendError if available
+  if (typeof res.sendError === 'function') {
+    return res.sendError(err, statusCode);
+  }
+
+  // Fallback: if sendError is not available
   // Determine what to send back
   const response = {
     success: false,
