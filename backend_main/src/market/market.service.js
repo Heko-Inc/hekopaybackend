@@ -15,6 +15,8 @@ const getAllMarketsService = async () => {
         });
 }
 
+
+
 const createMarket = async ({ country_code, country_name, primary_currency, timezone }) => {
     const existingMarket = await Market.findOne({ where: { country_code } });
 
