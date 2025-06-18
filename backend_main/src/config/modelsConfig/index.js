@@ -16,6 +16,8 @@ const JournalEntryApproval = require('../../journal/journalApproval.model')(sequ
 const KycDocumentType = require('../../kyc/kycDocumentType.model')(sequelize, DataTypes);
 const KycSubmission = require('../../kyc/kycSubmission.model')(sequelize, DataTypes);
 
+const RefreshToken = require("../../refreshToken/refreshtoken.model")(sequelize,DataTypes);
+
 // Associations
 User.belongsTo(Market, { foreignKey: 'market_id' });
 Market.hasMany(User, { foreignKey: 'market_id' });
@@ -48,7 +50,7 @@ module.exports = {
   sequelize,
   User, Market, Currency, Wallet, WalletAuditTrail,
   Transaction, JournalEntry, JournalEntryApproval,
-  KycDocumentType, KycSubmission
+  KycDocumentType, KycSubmission,RefreshToken
 };
 
 
