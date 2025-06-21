@@ -11,19 +11,10 @@ const {
 
 
 Router.post("/register", registerWallet);
-
-
 Router.post("/add/balance", addWalletBalance);
-
-
 Router.post("/freeze", freezeWallet);
-
 Router.post("/unfreeze", unfreezeWalletController);
-
-
 Router.get("/get", getWallets);
-
-
 Router.get("/get/:walletId", getWalletById);
 
 

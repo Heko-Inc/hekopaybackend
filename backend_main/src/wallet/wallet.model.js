@@ -7,15 +7,15 @@ module.exports = (sequelize, DataTypes) => {
         primaryKey: true,
         defaultValue: DataTypes.UUIDV4,
       },
-      user_id: {
+      userId: {
         type: DataTypes.UUID,
         allowNull: false,
       },
-      market_id: {
+      marketId: {
         type: DataTypes.UUID,
         allowNull: false,
       },
-      wallet_type: {
+      walletType: {
         type: DataTypes.ENUM("primary", "bnct", "prepayment"),
         allowNull: false,
         defaultValue: "primary",
@@ -28,49 +28,41 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.DECIMAL,
         defaultValue: 0,
       },
-      reserved_balance: {
+      reservedBalance: {
         type: DataTypes.DECIMAL,
         defaultValue: 0,
       },
-      is_active: {
+      isActive: {
         type: DataTypes.BOOLEAN,
         defaultValue: true,
       },
-      is_frozen: {
+      isFrozen: {
         type: DataTypes.BOOLEAN,
         defaultValue: false,
       },
-      frozen_reason: DataTypes.TEXT,
-      frozen_at: DataTypes.DATE,
-      frozen_by: DataTypes.UUID,
-      creation_source: DataTypes.STRING,
-      created_at: {
-        type: DataTypes.DATE,
-        defaultValue: DataTypes.NOW,
-      },
-      updated_at: {
-        type: DataTypes.DATE,
-        defaultValue: DataTypes.NOW,
-      },
+      frozenReason: DataTypes.TEXT,
+      frozenAt: DataTypes.DATE,
+      frozenBy: DataTypes.UUID,
+      creationSource: DataTypes.STRING,
     },
     {
       tableName: "wallets",
-      timestamps: false,
+      timestamps: true,
       underscored: true,
     }
   );
 
-  Wallet.associate = (models) => {
-    Wallet.hasMany(models.Transaction, {
-      foreignKey: "sender_wallet_id",
-      as: "sentTransactions",
-    });
+  // Wallet.associate = (models) => {
+  //   Wallet.hasMany(models.Transaction, {
+  //     foreignKey: "senderWalletId",
+  //     as: "sentTransactions",
+  //   });
 
-    Wallet.hasMany(models.Transaction, {
-      foreignKey: "recipient_wallet_id",
-      as: "receivedTransactions",
-    });
-  };
+  //   Wallet.hasMany(models.Transaction, {
+  //     foreignKey: "recipientWalletId",
+  //     as: "receivedTransactions",
+  //   });
+  // };
 
   return Wallet;
 };

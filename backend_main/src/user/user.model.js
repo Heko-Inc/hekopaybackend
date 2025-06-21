@@ -7,41 +7,29 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
       },
-      name: DataTypes.STRING,
+      firstName: DataTypes.STRING,
+      lastName: DataTypes.STRING,
       email: {
         type: DataTypes.STRING,
         unique: true,
       },
-
-      business_name: DataTypes.STRING,
-
-      business_type: DataTypes.STRING,
-
-      market_id: {
+      businessName: DataTypes.STRING,
+      businessType: DataTypes.STRING,
+      marketId: {
         type: DataTypes.UUID,
-
-        references: { model: "markets", key: "id" },
       },
-
-      default_currency: {
+      defaultCurrency: {
         type: DataTypes.STRING(3),
       },
       password: {
         type: DataTypes.STRING,
         allowNull: true,
       },
-      created_at: {
-        type: DataTypes.DATE,
-        defaultValue: DataTypes.NOW,
-      },
-      updated_at: {
-        type: DataTypes.DATE,
-        defaultValue: DataTypes.NOW,
-      },
     },
     {
       tableName: "users",
-      timestamps: false,
+      timestamps: true,
+      underscored: true, // Ensures DB columns are snake_case
     }
   );
 

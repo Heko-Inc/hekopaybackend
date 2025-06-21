@@ -2,7 +2,7 @@ const { Wallet } = require("../config/modelsConfig/index");
 
 const asyncMiddleware = require("../middlewares/asyncMiddleware");
 
-const { addBalanceToWallet,  getAllWallets, freezeWalletService,getWalletByIdService, unfreezeWalletService } = require("./wallet.service")
+const { addBalanceToWallet, getAllWallets, freezeWalletService, getWalletByIdService, unfreezeWalletService } = require("./wallet.service")
 
 const logger = require("../utils/logger");
 
@@ -27,7 +27,7 @@ const registerWallet = asyncMiddleware(async (req, res) => {
     return res.sendError("All fields are required.", 400);
   }
 
-  
+
   const existingWallet = await Wallet.findOne({
     where: {
       user_id,
@@ -150,4 +150,4 @@ const unfreezeWalletController = asyncMiddleware(async (req, res, next) => {
 
 
 
-module.exports = { registerWallet, addWalletBalance,getWallets,freezeWallet,getWalletById,unfreezeWalletController };
+module.exports = { registerWallet, addWalletBalance, getWallets, freezeWallet, getWalletById, unfreezeWalletController };

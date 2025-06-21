@@ -1,136 +1,48 @@
-const { v4: uuidv4 } = require("uuid");
-const bcrypt = require("bcryptjs");
-const { Op } = require("sequelize");
-const jwt = require("jsonwebtoken");
-const { User } = require("../config/modelsConfig/index");
-const AppError = require("../utils/AppError");
+const cloudinary = require("../utils/cloudinary");
+const { User } = require('../config/modelsConfig');
+const AppError = require('../utils/AppError');
 
-const { generateAccessToken,generateRefreshToken } = require("../utils/authHelper")
+exports.updateBusinessInfo = async (userId, data) => {
+  const user = await User.findByPk(userId);
+  if (!user) throw new AppError("User not found", 404);
 
-const  { RefreshToken } = require("../config/modelsConfig/index");
-
-const registerMerchantService = async (data) => {
-  const {
-    name,
-    email,
-    password,
-    business_name,
-    business_type,
-    market_id,
-    default_currency,
-  } = data;
-
-  const existingUser = await User.findOne({ where: { email } });
-  if (existingUser) {
-    throw new AppError("Email is already registered.", 409);
-  }
-
-  const hashedPassword = await bcrypt.hash(password, 12);
-
-  const user = await User.create({
-    id: uuidv4(),
-    name,
-    email,
-    password: hashedPassword,
-    business_name,
-    business_type,
-    market_id,
-    default_currency,
-    created_at: new Date(),
-    updated_at: new Date(),
+  await user.update({
+    businessName: data.businessName,
+    businessType: data.businessType,
   });
 
-  const sanitizedUser = { ...user.toJSON() };
-  delete sanitizedUser.password;
-  return sanitizedUser;
+  return { userId: user.id, businessName: user.businessName, businessType: user.businessType };
 };
 
-const loginMerchantService = async ({ email, password }) => {
-  if (!email || !password) {
-    throw new AppError("Email and password are required.", 400);
+exports.customizeBusiness = async (userId, data, file) => {
+  const user = await User.findByPk(userId);
+  if (!user) throw new AppError("User not found", 404);
+
+  let logoUrl = user.logoUrl;
+
+  if (file && file.path) {
+    // 👇 Step 1: Remove old logo if exists
+    if (logoUrl) {
+      try {
+        // Extract public_id from previous URL
+        const publicIdMatch = logoUrl.match(/\/hekopay_logos\/([^/.]+)/);
+        if (publicIdMatch && publicIdMatch[1]) {
+          await cloudinary.uploader.destroy(`hekopay_logos/${publicIdMatch[1]}`);
+        }
+      } catch (err) {
+        console.error("Error deleting old logo from Cloudinary:", err.message);
+      }
+    }
+
+    // 👇 Step 2: Set new logo URL
+    logoUrl = file.path;
   }
 
-  const user = await User.findOne({ where: { email } });
-  if (!user) {
-    throw new AppError("Invalid email or password.", 401);
-  }
-
-  const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) {
-    throw new AppError("Invalid email or password.", 401);
-  }
-
-  const accessToken = generateAccessToken({
-    id: user.id,
-    email: user.email,
-    name: user.name,
-    business_name: user.business_name,
+  await user.update({
+    businessCategory: data.businessCategory,
+    logoUrl,
   });
 
-  const refreshToken = generateRefreshToken({
-    id:user.id,
-    email:user.email
-  })
-
-  
-  const sanitizedUser = { ...user.toJSON() };
-
-  delete sanitizedUser.password;
-  
-  return {
-    
-    user:sanitizedUser,
-
-    accessToken,
-
-    refreshToken
-
-  };
+  return { userId: user.id, businessCategory: user.businessCategory, logoUrl };
 };
 
-const getSingleMerchantService = async (id) => {
-  if (!id) {
-    throw new AppError("Merchant ID is required.", 400);
-  }
-
-  const user = await User.findOne({
-    where: { id },
-    attributes: { exclude: ["password"] },
-  });
-
-  if (!user) throw new AppError("Merchant not found.", 404);
-  return user;
-};
-
-const getMerchantsService = async (query) => {
-  const { page = 1, limit = 10, search = "", market_id, business_type } = query;
-  const offset = (page - 1) * limit;
-
-  const whereClause = {
-    ...(market_id && { market_id }),
-    ...(business_type && { business_type }),
-    ...(search && {
-      [Op.or]: [
-        { name: { [Op.iLike]: `%${search}%` } },
-        { email: { [Op.iLike]: `%${search}%` } },
-      ],
-    }),
-  };
-
-  const { count, rows } = await User.findAndCountAll({
-    where: whereClause,
-    offset,
-    limit,
-    attributes: { exclude: ["password"] },
-    order: [["created_at", "DESC"]],
-  });
-
-  return { count, rows, page: Number(page), limit: Number(limit) };
-};
-
-module.exports = {
-  registerMerchantService,
-  loginMerchantService,
-  getSingleMerchantService,
-  getMerchantsService,
-};

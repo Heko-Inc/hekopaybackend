@@ -7,26 +7,20 @@ module.exports = (sequelize, DataTypes) => {
         primaryKey: true,
         defaultValue: DataTypes.UUIDV4,
       },
-      reference_id: {
+      referenceId: {
         type: DataTypes.STRING,
         allowNull: false,
         unique: true,
       },
-      transaction_type: {
-        type: DataTypes.ENUM(
-          "send",
-          "receive",
-          "refund",
-          "deposit",
-          "withdrawal"
-        ),
+      transactionType: {
+        type: DataTypes.ENUM("send", "receive", "refund", "deposit", "withdrawal"),
         allowNull: false,
       },
       status: {
         type: DataTypes.ENUM("pending", "completed", "failed"),
         allowNull: false,
       },
-      total_amount: {
+      totalAmount: {
         type: DataTypes.DECIMAL(20, 8),
         allowNull: false,
       },
@@ -34,15 +28,15 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING(3),
         allowNull: false,
       },
-      market_id: {
+      marketId: {
         type: DataTypes.UUID,
         allowNull: false,
       },
-      fee_percentage: {
+      feePercentage: {
         type: DataTypes.DECIMAL(5, 2),
         defaultValue: 0,
       },
-      fee_amount: {
+      feeAmount: {
         type: DataTypes.DECIMAL(20, 8),
         defaultValue: 0,
       },
@@ -52,20 +46,10 @@ module.exports = (sequelize, DataTypes) => {
       description: {
         type: DataTypes.TEXT,
       },
-      initiated_by: {
+      initiatedBy: {
         type: DataTypes.UUID,
       },
-      sender_wallet_id: {
-        type: DataTypes.UUID,
-        allowNull: true,
-        references: {
-          model: "wallets",
-          key: "id",
-        },
-        onUpdate: "CASCADE",
-        onDelete: "SET NULL",
-      },
-      recipient_wallet_id: {
+      senderWalletId: {
         type: DataTypes.UUID,
         allowNull: true,
         references: {
@@ -75,44 +59,53 @@ module.exports = (sequelize, DataTypes) => {
         onUpdate: "CASCADE",
         onDelete: "SET NULL",
       },
-      parent_transaction_id: {
+      recipientWalletId: {
+        type: DataTypes.UUID,
+        allowNull: true,
+        references: {
+          model: "wallets",
+          key: "id",
+        },
+        onUpdate: "CASCADE",
+        onDelete: "SET NULL",
+      },
+      parentTransactionId: {
         type: DataTypes.UUID,
         allowNull: true,
       },
-      created_at: {
-        type: DataTypes.DATE,
-        defaultValue: DataTypes.NOW,
-      },
-      completed_at: {
+      completedAt: {
         type: DataTypes.DATE,
       },
-      failed_at: {
+      failedAt: {
         type: DataTypes.DATE,
       },
-      failure_reason: {
+      failureReason: {
         type: DataTypes.TEXT,
       },
     },
     {
       tableName: "transactions",
-      timestamps: false,
+      timestamps: true,
       underscored: true,
     }
   );
 
-  Transaction.belongsTo(models.Wallet, {
-    foreignKey: "sender_wallet_id",
-    as: "senderWallet",
-    onDelete: "SET NULL",
-    onUpdate: "CASCADE",
-  });
+  // Associations should be defined here
+  // Transaction.associate = (models) => {
+  //   Transaction.belongsTo(models.Wallet, {
+  //     foreignKey: "senderWalletId",
+  //     as: "senderWallet",
+  //     onDelete: "SET NULL",
+  //     onUpdate: "CASCADE",
+  //   });
 
-  Transaction.belongsTo(models.Wallet, {
-    foreignKey: "recipient_wallet_id",
-    as: "recipientWallet",
-    onDelete: "SET NULL",
-    onUpdate: "CASCADE",
-  });
+  //   Transaction.belongsTo(models.Wallet, {
+  //     foreignKey: "recipientWalletId",
+  //     as: "recipientWallet",
+  //     onDelete: "SET NULL",
+  //     onUpdate: "CASCADE",
+  //   });
+  // };
 
   return Transaction;
 };

@@ -1,25 +1,52 @@
 module.exports = (sequelize, DataTypes) => {
-    const KycSubmission = sequelize.define('KycSubmission', {
-      id: {
-        type: DataTypes.UUID,
-        primaryKey: true,
-        defaultValue: DataTypes.UUIDV4,
-      },
-      user_id: { type: DataTypes.UUID, allowNull: false },
-      document_type_id: { type: DataTypes.UUID, allowNull: false },
-      document_value: DataTypes.UUID,
-      document_file_path: DataTypes.STRING,
-      status: { type: DataTypes.STRING, allowNull: false },
-      submitted_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-      reviewed_at: DataTypes.DATE,
-      reviewed_by: DataTypes.UUID,
-      rejection_reason: DataTypes.TEXT,
-      created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-      updated_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-    }, {
-      tableName: 'kyc_submissions',
-      timestamps: false,
-    });
-    return KycSubmission;
-  };
-  
+  const KycSubmission = sequelize.define('KycSubmission', {
+    id: {
+      type: DataTypes.UUID,
+      primaryKey: true,
+      defaultValue: DataTypes.UUIDV4,
+    },
+    userId: { type: DataTypes.UUID, allowNull: false },
+
+    // Multi-step data fields
+    businessName: DataTypes.STRING,
+    tradingName: DataTypes.STRING,
+    registrationType: DataTypes.STRING,
+    registrationNumber: DataTypes.STRING,
+    kraPin: DataTypes.STRING,
+    estimatedMonthlySales: DataTypes.STRING,
+
+    idType: DataTypes.STRING,                 // e.g., National ID
+    idDocumentUrl: DataTypes.STRING,          // File URL
+
+    addressLine: DataTypes.STRING,
+    city: DataTypes.STRING,
+    postalCode: DataTypes.STRING,
+    country: DataTypes.STRING,
+    addressProofUrl: DataTypes.STRING,        // File URL
+
+    website: DataTypes.STRING,
+    socialMediaLink: DataTypes.STRING,
+    category: DataTypes.STRING,
+    subCategory: DataTypes.STRING,
+
+    kraClearanceUrl: DataTypes.STRING,
+    registrationCertUrl: DataTypes.STRING,
+
+    step: { type: DataTypes.INTEGER, defaultValue: 1 }, // Current KYC step
+
+    status: {
+      type: DataTypes.ENUM("draft", "pending", "approved", "rejected"),
+      defaultValue: "draft",
+    },
+    rejectionReason: DataTypes.TEXT,
+
+    submittedAt: DataTypes.DATE,
+    reviewedAt: DataTypes.DATE,
+    reviewedBy: DataTypes.UUID,
+  }, {
+    tableName: 'kyc_submissions',
+    timestamps: true,
+    underscored: true,
+  });
+  return KycSubmission;
+};
