@@ -1,0 +1,9 @@
+{"level":"info","message":"Merchant logged in: codewithmunyao@gmail.com","timestamp":"2025-06-18 12:43:43"}
+{"level":"warn","message":"Wallet already exists for user: a83a154d-2048-47ba-aa72-c419bf8f7139, market: f02bc13b-5c89-492a-9e38-129c5f6a4b4d, currency: NGN","timestamp":"2025-06-18 12:43:59"}
+{"level":"info","message":"Merchant logged in: codewithmunyao@gmail.com","timestamp":"2025-06-18 12:44:14"}
+{"level":"info","message":"Merchant registered: emily@gmail.com","timestamp":"2025-06-18 12:52:19"}
+{"level":"info","message":"Merchant registered: blear@gmail.com","timestamp":"2025-06-18 12:53:42"}
+{"level":"info","message":"Wallet registered successfully for user: b9e8cf84-f89d-4340-82e8-05316e037d50","timestamp":"2025-06-18 12:58:06"}
+{"level":"info","message":"Wallet e2cc650c-ce19-4740-b601-59c4e5be89ce balance increased by 10000 by SYSTEM","timestamp":"2025-06-18 12:59:03"}
+{"level":"info","message":"Wallet registered successfully for user: d5e1195e-5527-45d0-8ac3-1a637c4ab2b8","timestamp":"2025-06-18 13:00:41"}
+{"level":"info","message":"Wallet 1360fdb6-c0e7-4311-b55c-ace8afdcc7b1 balance increased by 20000 by SYSTEM","timestamp":"2025-06-18 13:01:18"}

@@ -15,7 +15,11 @@ const WalletRoutes = require("./wallet/wallet.routes");
 const errorHandler = require("./middlewares/errorHandler");
 
 const stkPushRoutes = require("./stkpush/stkpush.routes");
+
+const TransactionRoute = require("./transaction/transaction.routes")
+
 const responseFormatter = require("./middlewares/responseFormatter");
+
 
 const cors = require("cors");
 
@@ -38,6 +42,7 @@ app.use("/api/v1/user", UsersRoute);
 app.use("/api/v1/market", MarketRoutes);
 app.use("/api/v1/wallet", WalletRoutes);
 app.use("/api/v1/stk/push", stkPushRoutes);
+app.use("/api/v1/transaction",TransactionRoute);
 
 app.use(errorHandler);
 
@@ -45,11 +50,12 @@ app.use(errorHandler);
 
 app.listen(PORT, async () => {
   try {
-    console.log("server is somewhat running");
+   
 
     await connectDatabase();
 
-    console.log(`🚀 Server running at http://localhost:${PORT}`);
+    console.log(`SERVER IS RUNNING ON: http://localhost:${PORT}`);
+
   } catch (error) {
     console.error("❌ Error starting the server:", error);
 

@@ -1,5 +1,7 @@
 module.exports = (sequelize, DataTypes) => {
-    const Wallet = sequelize.define('Wallet', {
+  const Wallet = sequelize.define(
+    "Wallet",
+    {
       id: {
         type: DataTypes.UUID,
         primaryKey: true,
@@ -13,7 +15,12 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.UUID,
         allowNull: false,
       },
-      wallet_type: DataTypes.STRING,
+      wallet_type: {
+        type: DataTypes.ENUM("primary", "bnct", "prepayment"),
+        allowNull: false,
+        defaultValue: "primary",
+      },
+
       currency: {
         type: DataTypes.STRING(3),
         allowNull: false,
@@ -46,10 +53,12 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,
       },
-    }, {
-      tableName: 'wallets',
+    },
+    {
+      tableName: "wallets",
       timestamps: false,
-    });
-    return Wallet;
-  };
-  
+      underscored: true,
+    }
+  );
+  return Wallet;
+};

@@ -5,6 +5,10 @@ const jwt = require("jsonwebtoken");
 const { User } = require("../config/modelsConfig/index");
 const AppError = require("../utils/AppError");
 
+const { generateAccessToken,generateRefreshToken } = require("../utils/authHelper")
+
+const  { RefreshToken } = require("../config/modelsConfig/index");
+
 const registerMerchantService = async (data) => {
   const {
     name,
@@ -56,20 +60,32 @@ const loginMerchantService = async ({ email, password }) => {
     throw new AppError("Invalid email or password.", 401);
   }
 
-  const token = jwt.sign(
-    {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      business_name: user.business_name,
-    },
-    process.env.JWT_SECRET,
-    { expiresIn: "7d" }
-  );
+  const accessToken = generateAccessToken({
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    business_name: user.business_name,
+  });
 
+  const refreshToken = generateRefreshToken({
+    id:user.id,
+    email:user.email
+  })
+
+  
   const sanitizedUser = { ...user.toJSON() };
+
   delete sanitizedUser.password;
-  return { user: sanitizedUser, token };
+  
+  return {
+    
+    user:sanitizedUser,
+
+    accessToken,
+
+    refreshToken
+
+  };
 };
 
 const getSingleMerchantService = async (id) => {

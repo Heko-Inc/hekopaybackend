@@ -1,5 +1,7 @@
 const logger = require("../utils/logger");
+
 const UserController = require("./user.service");
+
 
 const registerMerchant = async (req, res) => {
   const user = await UserController.registerMerchantService(req.body);
@@ -7,16 +9,20 @@ const registerMerchant = async (req, res) => {
   res.sendResponse(user, "Merchant registered successfully.", 201);
 };
 
+
+
 const loginMerchant = async (req, res) => {
-  const { user, token } = await UserController.loginMerchantService(req.body);
-  res.cookie("token", token, {
+  const { user, accessToken, refreshToken } = await UserController.loginMerchantService(req.body);
+
+  res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "Strict",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
+  
   logger.info(`Merchant logged in: ${user.email}`);
-  res.sendResponse({ user, token }, "Login successful");
+  res.sendResponse({ user, accessToken, refreshToken }, "Login successful");
 };
 
 const getSingleMerchant = async (req, res) => {
