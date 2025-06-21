@@ -20,7 +20,6 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: "primary",
       },
-
       currency: {
         type: DataTypes.STRING(3),
         allowNull: false,
@@ -60,5 +59,18 @@ module.exports = (sequelize, DataTypes) => {
       underscored: true,
     }
   );
+
+  Wallet.associate = (models) => {
+    Wallet.hasMany(models.Transaction, {
+      foreignKey: "sender_wallet_id",
+      as: "sentTransactions",
+    });
+
+    Wallet.hasMany(models.Transaction, {
+      foreignKey: "recipient_wallet_id",
+      as: "receivedTransactions",
+    });
+  };
+
   return Wallet;
 };
