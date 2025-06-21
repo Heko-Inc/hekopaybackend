@@ -16,9 +16,12 @@ const errorHandler = require("./middlewares/errorHandler");
 
 const stkPushRoutes = require("./stkpush/stkpush.routes");
 
+const currencyRoutes = require("./currency/currency.routes");
+
 const TransactionRoute = require("./transaction/transaction.routes")
 
 const responseFormatter = require("./middlewares/responseFormatter");
+
 
 
 const cors = require("cors");
@@ -43,6 +46,7 @@ app.use("/api/v1/market", MarketRoutes);
 app.use("/api/v1/wallet", WalletRoutes);
 app.use("/api/v1/stk/push", stkPushRoutes);
 app.use("/api/v1/transaction",TransactionRoute);
+app.use("/api/v1/currency",currencyRoutes);
 
 app.use(errorHandler);
 

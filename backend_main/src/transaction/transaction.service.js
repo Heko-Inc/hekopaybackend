@@ -6,7 +6,9 @@ const { sequelize }= require("../config/database/db")
 const { v4:uuidv4 } = require("uuid");
 
 const sendInAppPaymentService = async ({ senderId, recipientId, amount, market_id, currency, description }) => {
+
   const parsedAmount = parseFloat(amount);
+
   const t = await sequelize.transaction();
 
   try {
@@ -67,6 +69,12 @@ const sendInAppPaymentService = async ({ senderId, recipientId, amount, market_i
 
     const simulatedPaybillTxnRef = "MPESA-" + uuidv4();
 
+    console.log({
+      senderWalletId: senderWallet.id,
+      recipientWalletId: recipientWallet.id,
+    });
+    
+
     await Transaction.create({
       reference_id: simulatedPaybillTxnRef,
       transaction_type: "send",
@@ -109,6 +117,65 @@ const sendInAppPaymentService = async ({ senderId, recipientId, amount, market_i
 };
 
 
+const getAllTransactionsService = async ({
+  senderId,
+  recipientId,
+  market_id,
+  status,
+  page = 1,
+  limit = 20,
+}) => {
+  const offset = (page - 1) * limit;
+
+  const where = {};
+
+  if (senderId) {
+    where.initiated_by = senderId;
+  }
+
+  if (recipientId) {
+    where.recipient_wallet_id = recipientId;
+  }
+
+  if (market_id) {
+    where.market_id = market_id;
+  }
+
+  if (status) {
+    where.status = status;
+  }
+
+  const { rows: transactions, count: total } = await Transaction.findAndCountAll({
+    where,
+    include: [
+      {
+        model: Wallet,
+        as: "senderWallet",
+        attributes: ["id", "user_id", "wallet_type", "currency"],
+      },
+      {
+        model: Wallet,
+        as: "recipientWallet",
+        attributes: ["id", "user_id", "wallet_type", "currency"],
+      },
+    ],
+    order: [["created_at", "DESC"]],
+    limit,
+    offset,
+  });
+
+  return {
+    transactions,
+    total,
+    page,
+    limit,
+  };
+};
+
+module.exports = {
+  getAllTransactionsService,
+};
+
 
   
-module.exports = { sendInAppPaymentService }
+module.exports = { sendInAppPaymentService,getAllTransactionsService }
