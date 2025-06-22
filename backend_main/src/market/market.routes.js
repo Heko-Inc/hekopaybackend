@@ -10,7 +10,7 @@ const validateRequest = require("../middlewares/validateRequest")
 
 Router.post('/register', validateRequest(registerMarketSchema), asyncMiddleware(MarketController.registerMarket));
 
-Router.get('/all', asyncMiddleware(MarketController.getAllMarkets));
+Router.get('/', asyncMiddleware(MarketController.getAllMarkets));
 
 
 module.exports = Router;

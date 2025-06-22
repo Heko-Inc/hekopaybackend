@@ -19,12 +19,12 @@ exports.verifyOtp = async ({ email, otp }) => {
     return { verified: true };
 };
 
-exports.register = async ({ name, email, password, role }) => {
+exports.register = async ({ firstName, lastName, email, password, role }) => {
     const existing = await User.findOne({ where: { email } });
     if (existing) throw new AppError("Email already registered", 409);
 
     const hashed = await bcrypt.hash(password, 10);
-    const user = await User.create({ name, email, password: hashed, role });
+    const user = await User.create({ firstName, lastName, email, password: hashed, role, marketId: "b1cd9099-a271-4a2a-923c-babf670c3a22", defaultCurrency: "KES" });
 
     return { userId: user.id };
 };

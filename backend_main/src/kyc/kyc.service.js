@@ -2,7 +2,8 @@ const cloudinary = require('../utils/cloudinary');
 const {
     KycSubmission,
     KycDocument,
-    KycDocumentType
+    KycDocumentType,
+    Market
 } = require('../config/modelsConfig');
 const AppError = require('../utils/AppError');
 
@@ -19,7 +20,7 @@ exports.addIdentity = async (submissionId, { idType, idValue, documentFileUrl })
     const [_, submission] = await Promise.all([
         KycDocument.create({
             submissionId,
-            documentTypeId: '3ee228f7-f831-412c-85f8-e626b0768cd9',
+            documentTypeId: '37561ed1e-bc9d-4b96-84e4-70fd7b93a030',
             documentValue: idValue,
             documentFileUrl
         }),
@@ -36,7 +37,7 @@ exports.addAddress = async (submissionId, { addressLine, city, postalCode, count
     const [_, submission] = await Promise.all([
         KycDocument.create({
             submissionId,
-            documentTypeId: '3ee228f7-f831-412c-85f8-e626b0768cd9',
+            documentTypeId: '7561ed1e-bc9d-4b96-84e4-70fd7b93a030',
             documentFileUrl: addressProofUrl
         }),
         KycSubmission.update({
@@ -62,12 +63,12 @@ exports.addBusinessDocs = async (submissionId, { kraClearanceUrl, registrationCe
     await Promise.all([
         KycDocument.create({
             submissionId,
-            documentTypeId: "eb1ce8da-2878-4bef-880b-22e4b511a7f3",
+            documentTypeId: "2380a990-2355-4b55-b899-cc4c9257cfe0",
             documentFileUrl: registrationCertUrl
         }),
         kraClearanceUrl && KycDocument.create({
             submissionId,
-            documentTypeId: '3ee228f7-f831-412c-85f8-e626b0768cd9',
+            documentTypeId: 'ef28d76a-b3b6-4efe-a720-cb3f36310086',
             documentFileUrl: kraClearanceUrl
         }),
         KycSubmission.update({ step: 4 }, { where: { id: submissionId } })
@@ -94,6 +95,7 @@ exports.submitForReview = async (submissionId) => {
     const submission = await KycSubmission.findByPk(submissionId, {
         include: [{
             model: KycDocument,
+            as:"documents",
             where: { submissionId },
             required: false
         }]
@@ -153,5 +155,5 @@ exports.addDocument = async (submissionId, documentTypeId, documentValue, docume
 };
 
 exports.getAllDocumentTypes = async ({ where }) => {
-    return await KycDocumentType.findAll({ where });
+    return await KycDocumentType.findAll({ where, include: { model: Market, as: "market" } });
 };

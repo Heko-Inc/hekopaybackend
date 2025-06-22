@@ -29,6 +29,7 @@ app.use("/api/v1/auth", require("./auth/auth.routes"));
 
 app.use(tokenValidator())
 app.use("/api/v1/users", UsersRoute);
+app.use("/api/v1/currencies", require("./currency/currency.route"));
 app.use("/api/v1/markets", MarketRoutes);
 app.use("/api/v1/kyc", KycRoutes);
 app.use("/api/v1/wallets", WalletRoutes);
