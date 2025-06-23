@@ -14,5 +14,7 @@ Router.get("/",asyncMiddleware(TransactionController.getAllTransactions))
 Router.get("/:id",asyncMiddleware(TransactionController.getTransactionById))
 
 
+Router.get("/user",asyncMiddleware(TransactionController.getUserTransactionsController))
+
 
 module.exports = Router;

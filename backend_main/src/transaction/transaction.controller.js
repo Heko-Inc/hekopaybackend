@@ -2,6 +2,8 @@ const TransactionService = require("./transaction.service");
 
 const asyncMiddleware = require("../middlewares/asyncMiddleware");
 
+const getBaseURL = require("../utils/getBaseUrl");
+
 const sentInAppPayment = asyncMiddleware(async (req, res, next) => {
 
   const { senderId, recipientId, amount, market_id, currency, description } = req.body;
@@ -102,6 +104,31 @@ const getTransactionById = async (req, res, next) => {
 };
 
 
+const getUserTransactionsController = async (req, res, next) => {
+  try {
+    const { userId, page = 1, limit = 20, market_id, status } = req.query;
+
+    if (!userId) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+
+    const baseUrl = getBaseURL(req);
+
+    const result = await TransactionService.getUserTransactionsService({
+      userId,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      market_id,
+      status,
+      baseUrl,
+    });
+
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
-  sentInAppPayment,getAllTransactions,getTransactionById
+  sentInAppPayment,getAllTransactions,getTransactionById,getUserTransactionsController
 };
