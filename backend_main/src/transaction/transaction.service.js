@@ -177,7 +177,7 @@ const getTransactionByIdService = async (transactionId) =>{
 
     include:[
       {
-        model:"Wallet",
+        model:Wallet,
         as:"senderWallet",
         attributes: ["id", "user_id", "wallet_type", "currency"],
       },{
