@@ -1,4 +1,4 @@
-const { sendInAppPaymentService,getAllTransactionsService } = require("./transaction.service");
+const TransactionService = require("./transaction.service");
 
 const asyncMiddleware = require("../middlewares/asyncMiddleware");
 
@@ -14,7 +14,7 @@ const sentInAppPayment = asyncMiddleware(async (req, res, next) => {
 
   }
 
-  const result = await sendInAppPaymentService({
+  const result = await TransactionService.sendInAppPaymentService({
     senderId,
     recipientId,
     amount,
@@ -45,7 +45,7 @@ const getAllTransactions = async (req, res, next) => {
     const parsedPage = parseInt(page);
     const parsedLimit = parseInt(limit);
 
-    const result = await  getAllTransactionsService({
+    const result = await TransactionService.getAllTransactionsService({
       senderId,
       recipientId,
       market_id,
@@ -85,6 +85,23 @@ const getAllTransactions = async (req, res, next) => {
   }
 };
 
+const getTransactionById = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const transaction = await TransactionService.getTransactionByIdService(id);
+
+    res.status(200).json({
+      success: true,
+      message: "Transaction retrieved successfully",
+      data: transaction,
+    });
+  } catch (error) {
+    next(error); 
+  }
+};
+
+
 module.exports = {
-  sentInAppPayment,getAllTransactions
+  sentInAppPayment,getAllTransactions,getTransactionById
 };

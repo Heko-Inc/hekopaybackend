@@ -1,16 +1,12 @@
 const { Wallet, Transaction } = require("../config/modelsConfig/index");
 
-
 const { sequelize }= require("../config/database/db")
 
 const { v4:uuidv4 } = require("uuid");
 
 const sendInAppPaymentService = async ({ senderId, recipientId, amount, market_id, currency, description }) => {
-
   const parsedAmount = parseFloat(amount);
-
   const t = await sequelize.transaction();
-
   try {
     const senderWallet = await Wallet.findOne({
       where: { user_id: senderId, currency, market_id, wallet_type: "primary" },
@@ -51,10 +47,10 @@ const sendInAppPaymentService = async ({ senderId, recipientId, amount, market_i
       transaction: t,
     }).then(([wallet]) => wallet);
 
-    senderWallet.balance -= totalDebit;
-    recipientWallet.balance += amountToRecipient;
-    senderBnctWallet.balance += senderBnctSaving;
-    recipientBnctWallet.balance += recipientBnctAddition;
+    senderWallet.balance -= parseFloat(totalDebit);
+    recipientWallet.balance += parseFloat(amountToRecipient);
+    senderBnctWallet.balance += parseFloat(senderBnctSaving);
+    recipientBnctWallet.balance += parseFloat(recipientBnctAddition);
 
     console.log({
       senderWalletId: senderWallet.id,
@@ -172,10 +168,36 @@ const getAllTransactionsService = async ({
   };
 };
 
-module.exports = {
-  getAllTransactionsService,
-};
+
+const getTransactionByIdService = async (transactionId) =>{
+
+  const transaction = await Transaction.findOne({
+
+    where:{id:transactionId},
+
+    include:[
+      {
+        model:"Wallet",
+        as:"senderWallet",
+        attributes: ["id", "user_id", "wallet_type", "currency"],
+      },{
+        model:Wallet,
+        as:"recipientWallet",
+        attributes:["id","user_id","wallet_type","currency"],
+      }
+    ]
+  })
+
+  if(!transaction){
+
+    throw new Error("Transaction not found");
+
+  }
+
+  return  transaction;
+
+}
 
 
   
-module.exports = { sendInAppPaymentService,getAllTransactionsService }
+module.exports = { sendInAppPaymentService,getAllTransactionsService,getTransactionByIdService}

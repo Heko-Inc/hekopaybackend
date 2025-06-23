@@ -11,5 +11,8 @@ Router.post("/transfer", TransactionController.sentInAppPayment);
 Router.get("/",asyncMiddleware(TransactionController.getAllTransactions))
 
 
+Router.get("/:id",asyncMiddleware(TransactionController.getTransactionById))
+
+
 
 module.exports = Router;
