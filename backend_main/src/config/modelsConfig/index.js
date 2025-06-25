@@ -1,7 +1,14 @@
 const { Sequelize, DataTypes } = require('sequelize');
+<<<<<<< HEAD
 
 const sequelize = new Sequelize(process.env.DB_URL, { logging: false });
+=======
+const { DATABASE_URL } = require('../database/db');
 
+const sequelize = new Sequelize(DATABASE_URL);
+>>>>>>> dennis
+
+// Load models
 const User = require('../../user/user.model')(sequelize, DataTypes);
 const Market = require('../../market/market.model')(sequelize, DataTypes);
 const Currency = require('../../currency/currency.model')(sequelize, DataTypes);
@@ -13,7 +20,9 @@ const JournalEntryApproval = require('../../journal/journalApproval.model')(sequ
 const KycDocumentType = require('../../kyc/kycDocumentType.model')(sequelize, DataTypes);
 const KycDocument = require('../../kyc/kycDocument.model')(sequelize, DataTypes);
 const KycSubmission = require('../../kyc/kycSubmission.model')(sequelize, DataTypes);
+const RefreshToken = require("../../refreshToken/refreshtoken.model")(sequelize, DataTypes);
 
+<<<<<<< HEAD
 const RefreshToken = require("../../refreshToken/refreshtoken.model")(sequelize, DataTypes);
 
 // Associations
@@ -21,6 +30,33 @@ User.belongsTo(Market, { foreignKey: 'marketId', as: 'market' });
 User.hasMany(Wallet, { foreignKey: 'userId', as: 'wallets' });
 User.hasMany(KycSubmission, { foreignKey: 'userId', as: 'kycSubmissions' });
 User.hasMany(Transaction, { foreignKey: 'initiatedBy', as: 'initiatedTransactions' });
+=======
+// Create models object
+const models = {
+  User,
+  Market,
+  Currency,
+  Wallet,
+  WalletAuditTrail,
+  Transaction,
+  JournalEntry,
+  JournalEntryApproval,
+  KycDocumentType,
+  KycSubmission,
+  RefreshToken
+};
+
+// ✅ Call associate if available
+Object.values(models).forEach(model => {
+  if (model.associate) {
+    model.associate(models);
+  }
+});
+
+// Other direct associations (optional if not inside associate())
+User.belongsTo(Market, { foreignKey: 'market_id' });
+Market.hasMany(User, { foreignKey: 'market_id' });
+>>>>>>> dennis
 
 Market.hasMany(User, { foreignKey: 'marketId', as: 'users' });
 Market.hasMany(Wallet, { foreignKey: 'marketId', as: 'wallets' });
@@ -38,11 +74,21 @@ Transaction.belongsTo(Wallet, { foreignKey: 'recipientWalletId', as: 'recipientW
 Transaction.belongsTo(User, { foreignKey: 'initiatedBy', as: 'initiatedByUser' });
 Transaction.belongsTo(Market, { foreignKey: 'marketId', as: 'market' });
 
+<<<<<<< HEAD
 WalletAuditTrail.belongsTo(Wallet, { foreignKey: 'walletId', as: 'wallet' });
 WalletAuditTrail.belongsTo(Transaction, { foreignKey: 'transactionId', as: 'transaction' });
 
 KycDocument.belongsTo(KycSubmission, { foreignKey: 'submissionId', as: 'submission' });
 KycDocument.belongsTo(KycDocumentType, { foreignKey: 'documentTypeId', as: 'documentType' });
+=======
+Transaction.belongsTo(Currency, { foreignKey: 'currency' });
+Transaction.belongsTo(Market, { foreignKey: 'market_id' });
+
+JournalEntry.belongsTo(Transaction, { foreignKey: 'transaction_id' });
+JournalEntry.belongsTo(Wallet, { foreignKey: 'wallet_id' });
+
+JournalEntryApproval.belongsTo(JournalEntry, { foreignKey: 'journal_entry_id' });
+>>>>>>> dennis
 
 KycSubmission.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 KycSubmission.belongsTo(Market, { foreignKey: 'marketId', as: 'market' });
@@ -52,6 +98,7 @@ KycSubmission.belongsTo(KycDocumentType, { foreignKey: 'documentTypeId', as: 'do
 KycDocumentType.belongsTo(Market, { foreignKey: 'marketId', as: 'market' });
 KycDocumentType.hasMany(KycDocument, { foreignKey: 'documentTypeId', as: 'documents' });
 
+<<<<<<< HEAD
 
 let db = {
   sequelize,
@@ -82,3 +129,10 @@ module.exports = db
 //   .catch((err) => {
 //     console.error('❌ Error syncing models:', err);
 //   });
+=======
+// Export
+module.exports = {
+  sequelize,
+  ...models
+};
+>>>>>>> dennis

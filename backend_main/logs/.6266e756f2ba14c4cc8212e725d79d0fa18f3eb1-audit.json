@@ -41,6 +41,7 @@
             "hash": "d1e94419242e9f7f07f1cdd9851b57983b4a2e74fda9c66ad16f03d89033ec37"
         },
         {
+<<<<<<< HEAD
             "date": 1750512918113,
             "name": "logs\\app-2025-06-21.log",
             "hash": "71623a828963215ff7fde1815fa2136409b9d8da381e01b0dbde89939fdc87e8"
@@ -54,6 +55,11 @@
             "date": 1750617100814,
             "name": "logs\\app-2025-06-23.log",
             "hash": "31e1d3a12be74a1207e7fb88e7b6bae0cb1e4206bf87674c6c6a6b595a3ce38a"
+=======
+            "date": 1750646615712,
+            "name": "logs/app-2025-06-23.log",
+            "hash": "ef6862cbf2b882ea7c5ec964ab92e739ce133a92d0215136c14ffc1a0cec41a5"
+>>>>>>> dennis
         }
     ],
     "hashType": "sha256"
