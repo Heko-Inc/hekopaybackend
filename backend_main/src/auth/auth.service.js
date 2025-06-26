@@ -46,8 +46,11 @@ exports.login = async ({ email, password, otp }) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) throw new AppError("Invalid credentials", 401);
 
-    if (otpStore.get(email) !== otp) throw new AppError("Invalid OTP", 400);
-    otpStore.delete(email);
+    if (otp) {
+        const stored = otpStore.get(email);
+        if (!stored || stored.otp !== otp) throw new AppError("Invalid OTP", 400);
+        otpStore.delete(email);
+    }   
 
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRATION || '1h' });
 

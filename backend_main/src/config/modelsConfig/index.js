@@ -1,6 +1,6 @@
 const { Sequelize, DataTypes } = require('sequelize');
-
 const sequelize = new Sequelize(process.env.DB_URL, { logging: false });
+
 
 const User = require('../../user/user.model')(sequelize, DataTypes);
 const Market = require('../../market/market.model')(sequelize, DataTypes);
