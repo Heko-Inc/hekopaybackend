@@ -1,16 +1,8 @@
 
 const { v4: uuidv4 } = require('uuid');
-const { KycDocumentType, Market } = require("./config/modelsConfig");
+const { KycDocumentType, Market } = require("./../config/modelsConfig");
 
 const markets = [
-  {
-    id: 'f9dd0a99-4e4f-41d6-859f-ecc6fce1b331',
-    countryCode: 'IN',
-    countryName: 'India',
-    primaryCurrency: 'INR',
-    timezone: 'Asia/Kolkata',
-    isActive: true,
-  },
   {
     id: 'b1cd9099-a271-4a2a-923c-babf670c3a22',
     countryCode: 'KE',
@@ -19,40 +11,10 @@ const markets = [
     timezone: 'Africa/Nairobi',
     isActive: true,
   },
-  {
-    id: '2ab94657-fd08-42be-9b87-93ab1ac33d0f',
-    countryCode: 'NG',
-    countryName: 'Nigeria',
-    primaryCurrency: 'NGN',
-    timezone: 'Africa/Lagos',
-    isActive: true,
-  },
 ];
 
 
 const documentTypes = [
-  // 🇮🇳 India
-  {
-    id: uuidv4(),
-    marketId: 'f9dd0a99-4e4f-41d6-859f-ecc6fce1b331',
-    code: 'aadhaar',
-    displayName: 'Aadhaar Card',
-    description: 'Indian unique identity number (UIDAI).',
-    isRequired: true,
-    validationRegex: '^\\d{12}$',
-    isActive: true,
-  },
-  {
-    id: uuidv4(),
-    marketId: 'f9dd0a99-4e4f-41d6-859f-ecc6fce1b331',
-    code: 'pan_card',
-    displayName: 'PAN Card',
-    description: 'Permanent Account Number issued by Income Tax Dept.',
-    isRequired: true,
-    validationRegex: '^[A-Z]{5}[0-9]{4}[A-Z]{1}$',
-    isActive: true,
-  },
-
   // 🇰🇪 Kenya
   {
     id: uuidv4(),
@@ -74,26 +36,27 @@ const documentTypes = [
     validationRegex: '^A[0-9]{9}[A-Z]$',
     isActive: true,
   },
-
-  // 🇳🇬 Nigeria
+  //Bussiness Registration Certificate
   {
     id: uuidv4(),
-    marketId: '2ab94657-fd08-42be-9b87-93ab1ac33d0f',
-    code: 'nin',
-    displayName: 'National Identity Number (NIN)',
-    description: 'Issued by Nigerian Identity Management Commission.',
-    isRequired: true,
-    validationRegex: '^\\d{11}$',
-    isActive: true,
-  },
-  {
-    id: uuidv4(),
-    marketId: '2ab94657-fd08-42be-9b87-93ab1ac33d0f',
-    code: 'tin',
-    displayName: 'Tax Identification Number (TIN)',
-    description: 'Issued by the Federal Inland Revenue Service.',
+    marketId: 'b1cd9099-a271-4a2a-923c-babf670c3a22',
+    code: 'business_registration_certificate',
+    displayName: 'Business Registration Certificate',
+    description: 'Certificate of business registration in Kenya.',
     isRequired: false,
     validationRegex: '^\\d{10}$',
+    isActive: true,
+  },
+
+  // Address Proof
+  {
+    id: uuidv4(),
+    marketId: 'b1cd9099-a271-4a2a-923c-babf670c3a22',
+    code: 'address_proof',
+    displayName: 'Address Proof',
+    description: 'Document to verify the user\'s address.',
+    isRequired: true,
+    validationRegex: '^(\\d{1,5}\\s[a-zA-Z]{2,}(\\s[a-zA-Z]{2,}){0,2},\\s[a-zA-Z]{2,},\\s\\d{5})$',
     isActive: true,
   },
 ];

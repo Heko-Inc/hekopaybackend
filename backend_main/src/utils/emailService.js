@@ -20,7 +20,7 @@ exports.sendOtpToEmail = async (email, otp) => {
         <h2>HekoPay OTP Verification</h2>
         <p>Your One-Time Password (OTP) is:</p>
         <h1 style="letter-spacing: 2px;">${otp}</h1>
-        <p>This OTP is valid for 5 minutes. Please do not share it with anyone.</p>
+        <p>This OTP is valid for 15 minutes. Please do not share it with anyone.</p>
         <br />
         <small>If you did not request this, please ignore this email.</small>
       </div>

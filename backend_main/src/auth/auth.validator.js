@@ -10,15 +10,17 @@ exports.verifyEmailSchema = Joi.object({
 });
 
 exports.registerSchema = Joi.object({
-    name: Joi.string().required(),
+    firstName: Joi.string().required(),
+    lastName: Joi.string().required(),
     email: Joi.string().email().required(),
     password: Joi.string().min(6).required(),
-    role: Joi.string().optional(),
+    otp: Joi.string().length(6).required(),
 });
 
 exports.loginSchema = Joi.object({
     email: Joi.string().email().required(),
-    password: Joi.string().required()
+    password: Joi.string().required(),
+    otp: Joi.string().length(6).required(),
 });
 
 exports.forgotPasswordSchema = Joi.object({

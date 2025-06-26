@@ -20,7 +20,7 @@ exports.addIdentity = async (submissionId, { idType, idValue, documentFileUrl })
     const [_, submission] = await Promise.all([
         KycDocument.create({
             submissionId,
-            documentTypeId: '37561ed1e-bc9d-4b96-84e4-70fd7b93a030',
+            documentTypeId: 'd270bfc7-9f2b-4846-a1ca-c45828b0594e',
             documentValue: idValue,
             documentFileUrl
         }),
@@ -37,7 +37,7 @@ exports.addAddress = async (submissionId, { addressLine, city, postalCode, count
     const [_, submission] = await Promise.all([
         KycDocument.create({
             submissionId,
-            documentTypeId: '7561ed1e-bc9d-4b96-84e4-70fd7b93a030',
+            documentTypeId: 'b2654514-99a6-4497-ace8-18474dfb0169',
             documentFileUrl: addressProofUrl
         }),
         KycSubmission.update({
@@ -63,12 +63,12 @@ exports.addBusinessDocs = async (submissionId, { kraClearanceUrl, registrationCe
     await Promise.all([
         KycDocument.create({
             submissionId,
-            documentTypeId: "2380a990-2355-4b55-b899-cc4c9257cfe0",
+            documentTypeId: "ccbb7b28-63cc-4545-8931-c541542041b6",
             documentFileUrl: registrationCertUrl
         }),
         kraClearanceUrl && KycDocument.create({
             submissionId,
-            documentTypeId: 'ef28d76a-b3b6-4efe-a720-cb3f36310086',
+            documentTypeId: '994eae08-25c8-4339-b9b1-5920d79d77da',
             documentFileUrl: kraClearanceUrl
         }),
         KycSubmission.update({ step: 4 }, { where: { id: submissionId } })
