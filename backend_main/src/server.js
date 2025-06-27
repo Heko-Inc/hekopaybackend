@@ -22,8 +22,6 @@ const { verifyToken, tokenValidator } = require("./middlewares/verifyToken");
 
 
 
-const cors = require("cors");
-
 require("dotenv").config();
 
 
