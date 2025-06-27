@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 const { Currency } = require('../config/modelsConfig');
 const AppError = require('../utils/AppError');
 
@@ -71,7 +71,7 @@ exports.bulkCreateCurrencies = async (currencies) => {
     return await Currency.bulkCreate(currencies, { transaction: t });
   });
 };
-=======
+
 const { Currency } = require("../config/modelsConfig/index")
 
 const registerCurrency = async ({ code, name }) => {
@@ -107,4 +107,3 @@ const registerCurrency = async ({ code, name }) => {
     getAllCurrencies
   };
 
->>>>>>> dennis
