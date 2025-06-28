@@ -11,11 +11,9 @@ const sentInAppPayment = asyncMiddleware(async (req, res, next) => {
   console.log(req.body);
 
   if (!senderId || !recipientId || !amount || !market_id || !currency) {
-    
     return res.status(400).json({ message: "Missing required fields" });
-
   }
-
+  
   const result = await TransactionService.sendInAppPaymentService({
     senderId,
     recipientId,
@@ -124,6 +122,7 @@ const getUserTransactionsController = async (req, res, next) => {
     });
 
     res.status(200).json(result);
+
   } catch (error) {
     next(error);
   }

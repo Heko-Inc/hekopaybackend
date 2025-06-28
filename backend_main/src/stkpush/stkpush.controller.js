@@ -1,138 +1,119 @@
-const axios = require('axios')
+const asyncMiddleware = require("../middlewares/asyncMiddleware");
 
-require('dotenv').config()
 
-const asyncMiddleware = require('../middlewares/asyncMiddleware')
 
-var token = ''
+const walletService = require("../wallet/wallet.service");
 
-const createToken = async (req, res, next) => {
-  
-  const Authorization = `Basic ${new Buffer.from(
-    `${process.env.SAFARICOM_CONSUMER_KEY}:${process.env.SAFARICOM_CONSUMER_SECRET}`
-  ).toString('base64')}`
 
-  await axios
-    .get(
-      'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials',
-      {
-        headers: {
-          Authorization
-        }
-      }
-    )
-    .then(data => {
-      token = data.data.access_token
 
-      console.log(data.data)
+const MpesaService = require("./mpesa.service")
 
-      next()
-    })
-    .catch(err => {
-      console.log(err)
 
-      res.status(500).json(err.message)
-    })
-}
-
-const stkPush = async (req, res) => {
+const createToken = asyncMiddleware(async (req, res, next) => {
   try {
-    const shortCode = 174379
-    const phone = req.body.phone.substring(1)
-    const amount = req.body.amount
-    const passKey = process.env.SAFARICOM_STK_PUSH_PASS_KEY
-    const url = process.env.LIPA_NA_MPESA_URL
-    const date = new Date()
-    const timestamp =
-      date.getFullYear() +
-      ('0' + (date.getMonth() + 1)).slice(-2) +
-      ('0' + date.getDate()).slice(-2) +
-      ('0' + date.getHours()).slice(-2) +
-      ('0' + date.getMinutes()).slice(-2) +
-      ('0' + date.getSeconds()).slice(-2)
-    const password = Buffer.from(shortCode + passKey + timestamp).toString(
-      'base64'
-    )
-
-    const data = {
-      BusinessShortCode: shortCode,
-      Password: password,
-      Timestamp: timestamp,
-      TransactionType: 'CustomerPayBillOnline',
-      Amount: amount,
-      PartyA: `254${phone}`,
-      PartyB: 174379,
-      PhoneNumber: `254${phone}`,
-      CallBackURL: 'https://6a43-41-90-187-124.ngrok-free.app/api/v1/stk/push/callback',
-      AccountReference: 'Mpesa Test',
-      TransactionDesc: 'Testing stk push'
-    }
-
-    const response = await axios.post(url, data, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    })
-
-    console.log(response.data)
-    res.status(200).json(response.data)
-  } catch (error) {
-    console.error(error)
-    res.status(400).json(error.message)
+    const token = await MpesaService.generateMpesaToken();
+    console.log('🔑 Token:', token);
+    next();
+  } catch (err) {
+    console.error('❌ Token Error:', err.message);
+    res.status(500).json({ error: err.message });
   }
-}
+});
 
+const stkPush = asyncMiddleware(async (req, res) => {
+  const { phone, amount, wallet_id } = req.body;
 
-const handleMpesaCallback = asyncMiddleware(async (req, res, next) => {
+  if (!phone || !amount || !wallet_id) {
+    return res.status(400).json({ error: 'phone, amount and wallet_id are required' });
+  }
+
   try {
-    const callbackData = req.body;
-
-    console.log('🔔 M-PESA Callback Received:', JSON.stringify(callbackData, null, 2));
-
-    const {
-      Body: {
-        stkCallback: {
-          MerchantRequestID,
-          CheckoutRequestID,
-          ResultCode,
-          ResultDesc,
-          CallbackMetadata
-        }
-      }
-    } = callbackData;
-
-    const phone = CallbackMetadata?.Item?.find(i => i.Name === 'PhoneNumber')?.Value;
-
-    const amount = CallbackMetadata?.Item?.find(i => i.Name === 'Amount')?.Value;
-
-    const mpesaReceiptNumber = CallbackMetadata?.Item?.find(i => i.Name === 'MpesaReceiptNumber')?.Value;
-
-    console.log('✅ Payment Info:');
-
-    console.log('MerchantRequestID:', MerchantRequestID);
-
-    console.log('CheckoutRequestID:', CheckoutRequestID);
-
-    console.log('ResultCode:', ResultCode);
-
-    console.log('ResultDesc:', ResultDesc);
-
-    console.log('Amount:', amount);
-
-    console.log('MpesaReceiptNumber:', mpesaReceiptNumber);
-
-    console.log('PhoneNumber:', phone);
-
-    res.status(200).json({
-
-      message: 'M-PESA callback received successfully'
-
-    });
+    const result = await MpesaService.sendStkPush({ phone, amount, wallet_id });
+    console.log('📲 STK Push Sent:', result);
+    res.status(200).json(result);
   } catch (error) {
-    console.error('❌ Error handling M-PESA callback:', error);
-    next(error); 
+    console.error('❌ STK Push Error:', error.message);
+    res.status(400).json({ error: error.message });
   }
 });
 
 
-module.exports = {createToken, stkPush, handleMpesaCallback}
+
+const handleMpesaCallback = asyncMiddleware(async (req, res) => {
+
+  const callbackData = req.body;
+
+  console.log('🔔 M-PESA Callback Received:', JSON.stringify(callbackData, null, 2));
+
+  const {
+    Body: {
+      stkCallback: {
+        MerchantRequestID,
+        CheckoutRequestID,
+        ResultCode,
+        ResultDesc,
+        CallbackMetadata,
+        AccountReference: wallet_id
+      }
+    }
+  } = callbackData;
+
+  if (ResultCode !== 0) {
+
+    console.log('❌ Transaction Failed:', ResultDesc);
+
+    return res.status(200).json({ message: 'Transaction failed', ResultDesc });
+
+  }
+
+  const metadata = CallbackMetadata?.Item || [];
+
+  const phone = metadata.find(i => i.Name === 'PhoneNumber')?.Value;
+  const amount = metadata.find(i => i.Name === 'Amount')?.Value;
+  const mpesaReceiptNumber = metadata.find(i => i.Name === 'MpesaReceiptNumber')?.Value;
+
+  if (!wallet_id) {
+    console.log('⚠️ Missing wallet ID in callback');
+    return res.status(400).json({ message: 'Missing wallet ID' });
+  }
+
+  const numericAmount = Number(amount);
+  if (isNaN(numericAmount)) {
+    console.log('⚠️ Invalid amount:', amount);
+    return res.status(400).json({ message: 'Invalid amount in callback' });
+  }
+
+  console.log('✅ Payment Info:');
+  console.log('✔️ MerchantRequestID:', MerchantRequestID);
+  console.log('✔️ CheckoutRequestID:', CheckoutRequestID);
+  console.log('✔️ ResultCode:', ResultCode);
+  console.log('✔️ ResultDesc:', ResultDesc);
+  console.log('✔️ Amount:', amount);
+  console.log('✔️ MpesaReceiptNumber:', mpesaReceiptNumber);
+  console.log('✔️ PhoneNumber:', phone);
+  console.log('✔️ Wallet ID:', wallet_id);
+
+
+  const results = await walletService.addBalanceToWallet({
+
+    wallet_id,
+    
+    amount: numericAmount,
+
+    performed_by: `MPESA:${mpesaReceiptNumber}`
+  });
+
+  console.log('✅ Account deposited successfully');
+
+  res.status(200).json({
+    success: true,
+    data: results
+  });
+});
+
+
+module.exports = {
+  createToken,
+  stkPush,
+  handleMpesaCallback
+};

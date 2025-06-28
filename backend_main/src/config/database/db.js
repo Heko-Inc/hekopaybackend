@@ -1,15 +1,23 @@
 const { Sequelize } = require('sequelize');
 
 
-const DATABASE_NAME="Hekopaydb";
+require("dotenv").config()
 
 
 
-const HEKOPAYDB_OWNER="Hekopaydb_owner";
+const DATABASE_NAME=process.env.DATABASE_NAME;
 
 
 
-const PASSWORD="npg_UfCk5Omn4huS"
+
+const HEKOPAYDB_OWNER=process.env.HEKOPAYDB_OWNER;
+
+
+
+
+const PASSWORD=process.env.DATABASE_PASSWORD;
+
+
 
 
 const sequelize = new Sequelize(
