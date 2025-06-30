@@ -55,6 +55,6 @@ jobs:
             docker rm hekopay-backend || true
             docker run -d -p 5000:5000 \
               --name hekopay-backend \
-              --env-file /root/env.list \
+              --env-file /root/env \
               violasangut/hekopay-backend:v3
           EOF
