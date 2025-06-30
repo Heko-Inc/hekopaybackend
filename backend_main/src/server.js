@@ -58,6 +58,12 @@ app.listen(PORT, async () => {
 
     await connectDatabase();
 
+    // console.log("ENV CHECK:", {
+    //   DB: process.env.DATABASE_NAME,
+    //   USER: process.env.HEKOPAYDB_OWNER,
+    //   PASS: process.env.DATABASE_PASSWORD,
+    // });
+
     console.log(`SERVER IS RUNNING ON: http://localhost:${PORT}`);
 
   } catch (error) {

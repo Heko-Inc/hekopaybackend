@@ -1,16 +1,14 @@
 const { Wallet,WalletAuditTrail } = require("../config/modelsConfig/index");
 const { v4: uuidv4 } = require("uuid");
 
-const addBalanceToWallet = async ({ wallet_id, amount, performed_by }) => {
+const Decimal = require("decimal.js");
 
+const addBalanceToWallet = async ({ wallet_id, amount, performed_by }) => {
   console.log(wallet_id, amount, performed_by);
 
   if (!wallet_id || !amount || isNaN(amount)) {
-
     const error = new Error("wallet_id and valid amount are required.");
-
     error.statusCode = 400;
-
     throw error;
   }
 
@@ -34,12 +32,12 @@ const addBalanceToWallet = async ({ wallet_id, amount, performed_by }) => {
     throw error;
   }
 
-  const balance_before = parseFloat(wallet.balance);
-  const amount_to_add = parseFloat(amount);
-  const balance_after = balance_before + amount_to_add;
+  const balance_before = new Decimal(wallet.balance);
+  const amount_to_add = new Decimal(amount);
+  const balance_after = balance_before.plus(amount_to_add).toDecimalPlaces(2);
 
   // Update wallet
-  wallet.balance = balance_after;
+  wallet.balance = balance_after.toString(); // Sequelize DECIMAL expects string
   wallet.updated_at = new Date();
   await wallet.save();
 
@@ -48,10 +46,10 @@ const addBalanceToWallet = async ({ wallet_id, amount, performed_by }) => {
     id: uuidv4(),
     wallet_id: wallet.id,
     action: 'credit',
-    amount: amount_to_add,
-    balance_before,
-    balance_after,
-    transaction_id: null, // Optional: if tied to a transaction
+    amount: amount_to_add.toString(),
+    balance_before: balance_before.toString(),
+    balance_after: balance_after.toString(),
+    transaction_id: null,
     performed_by,
     reason: 'Manual top-up or system adjustment',
     created_at: new Date(),
