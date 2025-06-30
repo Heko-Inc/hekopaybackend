@@ -51,8 +51,14 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no -i hekoday.pem root@47.89.155.60 << 'EOF'
             docker pull violasangut/hekopay-backend:v3
-            docker stop hekopay-backend || true
-            docker rm hekopay-backend || true
+            # Find and stop any container using port 5000
+            PORT=5000
+            CONTAINER_ID=$(docker ps --filter "publish=$PORT" -q)
+            if [ ! -z "$CONTAINER_ID" ]; then
+              docker stop $CONTAINER_ID
+              docker rm $CONTAINER_ID
+            fi
+
             docker run -d -p 5000:5000 \
               --name hekopay-backend \
               --env-file .env \
