@@ -3,7 +3,7 @@ name: Build and Push Docker Image
 on:
   push:
     branches:
-      - staging  # change to your working branch if needed
+      - staging  # or main/production as needed
 
 jobs:
   build-and-push:
@@ -26,6 +26,18 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./backend_main
-          file: ./backend_main/Dockerfile
+          file: ./backend_main/Dockerfile.prod
           push: true
           tags: violasangut/hekopay-backend:v2
+          build-args: |
+            DB_URL=${{ secrets.DB_URL }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            JWT_EXPIRATION=${{ secrets.JWT_EXPIRATION }}
+            CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}
+            CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}
+            CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }}
+            SMTP_HOST=${{ secrets.SMTP_HOST }}
+            SMTP_PORT=${{ secrets.SMTP_PORT }}
+            SMTP_USER=${{ secrets.SMTP_USER }}
+            SMTP_PASS=${{ secrets.SMTP_PASS }}
+            FROM_EMAIL=${{ secrets.FROM_EMAIL }}
