@@ -47,6 +47,8 @@ app.use("/api/v1/wallet", WalletRoutes);
 app.use("/api/v1/stk/push", mpesaRoutes);
 app.use("/api/v1/transaction",TransactionRoute);
 app.use("/api/v1/currency",currencyRoutes);
+app.use("/api/v1/wallet-audit-trails",require("./AuditTrail/AuditTrail.route"));
+
 
 app.use(errorHandler);
 
