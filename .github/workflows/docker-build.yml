@@ -1,12 +1,12 @@
-name: Build and Push 
+name: Build and Deploy
 
 on:
   push:
     branches:
-      - staging  # or main/production as needed
+      - staging  # Trigger only on staging branch push
 
 jobs:
-  build-and-push:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,7 +22,7 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and push Docker image
+      - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
           context: ./backend_main
@@ -41,3 +41,17 @@ jobs:
             SMTP_USER=${{ secrets.SMTP_USER }}
             SMTP_PASS=${{ secrets.SMTP_PASS }}
             FROM_EMAIL=${{ secrets.FROM_EMAIL }}
+
+      - name: Decode PEM Key
+        run: |
+          echo "${{ secrets.ALI_KEY }}" | base64 -d > hekoday.pem
+          chmod 400 hekoday.pem
+
+      - name: Deploy to Alibaba Server
+        run: |
+          ssh -o StrictHostKeyChecking=no -i hekoday.pem root@47.89.155.60 '
+            docker pull violasangut/hekopay-backend:v3 &&
+            docker stop hekopay-backend || true &&
+            docker rm hekopay-backend || true &&
+            docker run -d -p 5000:5000 --name hekopay-backend --env-file /root/env.list violasangut/hekopay-backend:v3
+          '
