@@ -49,9 +49,12 @@ jobs:
 
       - name: Deploy to Alibaba Server
         run: |
-          ssh -o StrictHostKeyChecking=no -i hekoday.pem root@47.89.155.60 '
-            docker pull violasangut/hekopay-backend:v3 &&
-            docker stop hekopay-backend || true &&
-            docker rm hekopay-backend || true &&
-            docker run -d -p 5000:5000 --name hekopay-backend --env-file /root/env.list violasangut/hekopay-backend:v3
-          '
+          ssh -o StrictHostKeyChecking=no -i hekoday.pem root@47.89.155.60 << 'EOF'
+            docker pull violasangut/hekopay-backend:v3
+            docker stop hekopay-backend || true
+            docker rm hekopay-backend || true
+            docker run -d -p 5000:5000 \
+              --name hekopay-backend \
+              --env-file /root/env.list \
+              violasangut/hekopay-backend:v3
+          EOF
