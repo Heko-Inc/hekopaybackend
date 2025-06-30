@@ -28,7 +28,7 @@ jobs:
           context: ./backend_main
           file: ./backend_main/Dockerfile.prod
           push: true
-          tags: violasangut/hekopay-backend:v2
+          tags: violasangut/hekopay-backend:v3
           build-args: |
             DB_URL=${{ secrets.DB_URL }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}

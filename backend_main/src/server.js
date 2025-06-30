@@ -21,7 +21,7 @@ app.use(responseFormatter); // Response Formatter
 app.get("/", (req, res) => {
   res.status(200).json({
     success: true,
-    message: "Welcome to the Hekopay backend ",
+    message: "Welcome to the Hekopay backend YES ",
   });
 });
 
