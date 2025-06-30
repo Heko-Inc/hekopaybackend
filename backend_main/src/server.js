@@ -21,7 +21,7 @@ app.use(responseFormatter); // Response Formatter
 app.get("/", (req, res) => {
   res.status(200).json({
     success: true,
-    message: "Welcome to the backend server",
+    message: "Welcome to the Hekopay backend server",
   });
 });
 
@@ -43,7 +43,7 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, async () => {
   try {
     await connectDatabase();
-    console.log(`SERVER IS RUNNING ON: http://localhost:${PORT}`);
+    console.log(`SERVER IS RUNNING ON: http://0.0.0.0:${PORT}`);
 
   } catch (error) {
     console.error("❌ Error starting the server:", error);
