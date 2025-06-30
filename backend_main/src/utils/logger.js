@@ -21,12 +21,14 @@ const transports = [
     format: logFormat,
   }),
 
+
   // Error-specific file
   new winston.transports.File({
     filename: 'logs/errors.log',
     level: 'error',
     format: logFormat,
   }),
+
 
   // Warning-specific file
   new winston.transports.File({
@@ -35,6 +37,7 @@ const transports = [
     format: logFormat,
   }),
 ];
+
 
 // Console transport only in non-production environments
 if (process.env.NODE_ENV !== 'production') {

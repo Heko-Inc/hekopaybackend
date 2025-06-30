@@ -66,9 +66,9 @@ const registerWallet = asyncMiddleware(async (req, res) => {
 
 const addWalletBalance = asyncMiddleware(async (req, res, next) => {
 
-  const { wallet_id, amount } = req.body;
+  const { wallet_id, amount,performed_by } = req.body;
 
-  const performed_by = req.user?.id || "SYSTEM";
+  // const performed_by = req.user?.id || "SYSTEM";
 
   try {
     const result = await addBalanceToWallet({ wallet_id, amount, performed_by });

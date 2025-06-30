@@ -1,5 +1,7 @@
 const Router = require("express").Router();
 
+const MpesaController = require("../mpesa/mpesa.controller")
+
 const {
   registerWallet,
   addWalletBalance,
@@ -13,7 +15,10 @@ const {
 Router.post("/register", registerWallet);
 
 
-Router.post("/add/balance", addWalletBalance);
+// Router.post("/add/balance",MpesaController.createToken, MpesaController.stkPush);
+
+Router.post("/add/balance",addWalletBalance);
+
 
 
 Router.post("/freeze", freezeWallet);

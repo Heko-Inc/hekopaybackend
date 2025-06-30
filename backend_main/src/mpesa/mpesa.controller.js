@@ -41,75 +41,73 @@ const stkPush = asyncMiddleware(async (req, res) => {
 
 const handleMpesaCallback = asyncMiddleware(async (req, res) => {
 
-  const callbackData = req.body;
+  console.log('STK Callback response:', JSON.stringify(req.body));
+
+  const callbackData = req.body.Body.stkCallback;
 
   console.log('🔔 M-PESA Callback Received:', JSON.stringify(callbackData, null, 2));
 
-  const {
-    Body: {
-      stkCallback: {
-        MerchantRequestID,
-        CheckoutRequestID,
-        ResultCode,
-        ResultDesc,
-        CallbackMetadata,
-        AccountReference: wallet_id
-      }
-    }
-  } = callbackData;
+  const metadata = callbackData.CallbackMetadata?.Item || [];
 
-  if (ResultCode !== 0) {
+  if (callbackData.ResultCode !== 0) {
 
-    console.log('❌ Transaction Failed:', ResultDesc);
+    console.log(`PROCESS CANCELLED BY THE USER`);
 
-    return res.status(200).json({ message: 'Transaction failed', ResultDesc });
+    return res.status(404).json({
+      success: false,
+      message: "The user cancelled the process"
+    });
 
   }
 
-  const metadata = CallbackMetadata?.Item || [];
-
   const phone = metadata.find(i => i.Name === 'PhoneNumber')?.Value;
+
   const amount = metadata.find(i => i.Name === 'Amount')?.Value;
+
   const mpesaReceiptNumber = metadata.find(i => i.Name === 'MpesaReceiptNumber')?.Value;
 
+  const wallet_id = metadata.find(i => i.Name === 'AccountReference')?.Value;
+
   if (!wallet_id) {
+
     console.log('⚠️ Missing wallet ID in callback');
+
     return res.status(400).json({ message: 'Missing wallet ID' });
+
   }
 
   const numericAmount = Number(amount);
+
   if (isNaN(numericAmount)) {
+
     console.log('⚠️ Invalid amount:', amount);
+
     return res.status(400).json({ message: 'Invalid amount in callback' });
+
   }
-
-  console.log('✅ Payment Info:');
-  console.log('✔️ MerchantRequestID:', MerchantRequestID);
-  console.log('✔️ CheckoutRequestID:', CheckoutRequestID);
-  console.log('✔️ ResultCode:', ResultCode);
-  console.log('✔️ ResultDesc:', ResultDesc);
-  console.log('✔️ Amount:', amount);
-  console.log('✔️ MpesaReceiptNumber:', mpesaReceiptNumber);
-  console.log('✔️ PhoneNumber:', phone);
-  console.log('✔️ Wallet ID:', wallet_id);
-
 
   const results = await walletService.addBalanceToWallet({
 
     wallet_id,
-    
+
     amount: numericAmount,
 
     performed_by: `MPESA:${mpesaReceiptNumber}`
+
   });
 
   console.log('✅ Account deposited successfully');
 
   res.status(200).json({
+
     success: true,
+
     data: results
+
   });
+  
 });
+
 
 
 module.exports = {

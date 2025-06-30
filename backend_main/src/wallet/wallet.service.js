@@ -1,4 +1,5 @@
-const { Wallet } = require("../config/modelsConfig/index");
+const { Wallet,WalletAuditTrail } = require("../config/modelsConfig/index");
+const { v4: uuidv4 } = require("uuid");
 
 const addBalanceToWallet = async ({ wallet_id, amount, performed_by }) => {
 
@@ -7,54 +8,63 @@ const addBalanceToWallet = async ({ wallet_id, amount, performed_by }) => {
   if (!wallet_id || !amount || isNaN(amount)) {
 
     const error = new Error("wallet_id and valid amount are required.");
-    error.statusCode = 400;
-    throw error;
 
+    error.statusCode = 400;
+
+    throw error;
   }
 
   const wallet = await Wallet.findOne({ where: { id: wallet_id } });
 
   if (!wallet) {
-
     const error = new Error("Wallet not found.");
     error.statusCode = 404;
     throw error;
-
   }
 
   if (!wallet.is_active) {
-
     const error = new Error("Wallet is inactive.");
     error.statusCode = 403;
     throw error;
-
   }
 
   if (wallet.is_frozen) {
-
     const error = new Error("Wallet is frozen.");
     error.statusCode = 403;
     throw error;
-
   }
 
-  const newBalance = parseFloat(wallet.balance) + parseFloat(amount);
-  wallet.balance = newBalance;
-  wallet.updated_at = new Date();
+  const balance_before = parseFloat(wallet.balance);
+  const amount_to_add = parseFloat(amount);
+  const balance_after = balance_before + amount_to_add;
 
+  // Update wallet
+  wallet.balance = balance_after;
+  wallet.updated_at = new Date();
   await wallet.save();
 
-  return {
+  // Create audit trail
+  await WalletAuditTrail.create({
+    id: uuidv4(),
+    wallet_id: wallet.id,
+    action: 'credit',
+    amount: amount_to_add,
+    balance_before,
+    balance_after,
+    transaction_id: null, // Optional: if tied to a transaction
+    performed_by,
+    reason: 'Manual top-up or system adjustment',
+    created_at: new Date(),
+  });
 
+  return {
     message: "Balance added successfully.",
     balance: wallet.balance,
     wallet_id: wallet.id,
     updated_at: wallet.updated_at,
     performed_by,
-
   };
 };
-
 
 
 

@@ -14,7 +14,7 @@ const WalletRoutes = require("./wallet/wallet.routes");
 
 const errorHandler = require("./middlewares/errorHandler");
 
-const stkPushRoutes = require("./stkpush/stkpush.routes");
+const mpesaRoutes = require("./mpesa/mpesa.routes");
 
 const currencyRoutes = require("./currency/currency.routes");
 
@@ -44,7 +44,7 @@ app.get("/", (req, res) => {
 app.use("/api/v1/user", UsersRoute);
 app.use("/api/v1/market", MarketRoutes);
 app.use("/api/v1/wallet", WalletRoutes);
-app.use("/api/v1/stk/push", stkPushRoutes);
+app.use("/api/v1/stk/push", mpesaRoutes);
 app.use("/api/v1/transaction",TransactionRoute);
 app.use("/api/v1/currency",currencyRoutes);
 
