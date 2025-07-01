@@ -8,6 +8,8 @@ const UsersRoute = require("./user/user.routes");
 const MarketRoutes = require("./market/market.routes");
 const WalletRoutes = require("./wallet/wallet.routes");
 const stkPushRoutes = require("./stkpush/stkpush.routes");
+const mpesaRoutes = require("./mpesa/mpesa.routes");
+
 const TransactionRoute = require("./transaction/transaction.routes")
 const KycRoutes = require("./kyc/kyc.routes")
 const errorHandler = require("./middlewares/errorHandler");
@@ -35,6 +37,9 @@ app.use("/api/v1/kyc", KycRoutes);
 app.use("/api/v1/wallets", WalletRoutes);
 app.use("/api/v1/stk/push", stkPushRoutes);
 app.use("/api/v1/transactions", TransactionRoute);
+app.use("/api/v1/stk/push", mpesaRoutes);
+app.use("/api/v1/transaction",TransactionRoute);
+app.use("/api/v1/wallet-audit-trails",require("./AuditTrail/AuditTrail.route"));
 
 
 app.use(errorHandler);

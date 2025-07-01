@@ -1,13 +1,20 @@
-const validateRequest = require("../middlewares/validateRequest");
+const asyncMiddleware = require("../middlewares/asyncMiddleware")
 
 const TransactionController = require("./transaction.controller");
 
 const Router = require("express").Router();
 
-Router.get("/", async (res, req) => {
-  res.status(200).json({ message: "Data gotten from the backend" });
-});
 
 Router.post("/transfer", TransactionController.sentInAppPayment);
+
+
+Router.get("/",asyncMiddleware(TransactionController.getAllTransactions))
+
+
+Router.get("/:id",asyncMiddleware(TransactionController.getTransactionById))
+
+
+Router.get("/user",asyncMiddleware(TransactionController.getUserTransactionsController))
+
 
 module.exports = Router;

@@ -1,7 +1,10 @@
 const express = require("express");
 
-
 const { sequelize } = require("./db");
+
+
+require("dotenv").config()
+
 
 const connectDatabase = async () => {
 
@@ -20,4 +23,6 @@ const connectDatabase = async () => {
 
 }
 
+
+    
 module.exports = connectDatabase;

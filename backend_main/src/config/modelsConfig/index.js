@@ -6,7 +6,7 @@ const User = require('../../user/user.model')(sequelize, DataTypes);
 const Market = require('../../market/market.model')(sequelize, DataTypes);
 const Currency = require('../../currency/currency.model')(sequelize, DataTypes);
 const Wallet = require('../../wallet/wallet.model')(sequelize, DataTypes);
-const WalletAuditTrail = require('../../wallet/walletAuditTrail.model')(sequelize, DataTypes);
+const WalletAuditTrail = require('../../AuditTrail/walletAuditTrail.model')(sequelize, DataTypes);
 const Transaction = require('../../transaction/transaction.model')(sequelize, DataTypes);
 const JournalEntry = require('../../journal/journalEntry.model')(sequelize, DataTypes);
 const JournalEntryApproval = require('../../journal/journalApproval.model')(sequelize, DataTypes);
@@ -43,6 +43,13 @@ WalletAuditTrail.belongsTo(Transaction, { foreignKey: 'transactionId', as: 'tran
 
 KycDocument.belongsTo(KycSubmission, { foreignKey: 'submissionId', as: 'submission' });
 KycDocument.belongsTo(KycDocumentType, { foreignKey: 'documentTypeId', as: 'documentType' });
+Transaction.belongsTo(Currency, { foreignKey: 'currency' });
+Transaction.belongsTo(Market, { foreignKey: 'market_id' });
+
+JournalEntry.belongsTo(Transaction, { foreignKey: 'transaction_id' });
+JournalEntry.belongsTo(Wallet, { foreignKey: 'wallet_id' });
+
+JournalEntryApproval.belongsTo(JournalEntry, { foreignKey: 'journal_entry_id' });
 
 KycSubmission.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 KycSubmission.belongsTo(Market, { foreignKey: 'marketId', as: 'market' });
