@@ -7,7 +7,6 @@ const connectDatabase = require("./config/database/connectionDb");
 const UsersRoute = require("./user/user.routes");
 const MarketRoutes = require("./market/market.routes");
 const WalletRoutes = require("./wallet/wallet.routes");
-const stkPushRoutes = require("./stkpush/stkpush.routes");
 const mpesaRoutes = require("./mpesa/mpesa.routes");
 
 const TransactionRoute = require("./transaction/transaction.routes")
@@ -35,7 +34,6 @@ app.use("/api/v1/currencies", require("./currency/currency.route"));
 app.use("/api/v1/markets", MarketRoutes);
 app.use("/api/v1/kyc", KycRoutes);
 app.use("/api/v1/wallets", WalletRoutes);
-app.use("/api/v1/stk/push", stkPushRoutes);
 app.use("/api/v1/transactions", TransactionRoute);
 app.use("/api/v1/stk/push", mpesaRoutes);
 app.use("/api/v1/transaction",TransactionRoute);

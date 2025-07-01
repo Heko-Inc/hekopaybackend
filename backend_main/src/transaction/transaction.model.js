@@ -54,19 +54,6 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
         // No FK constraint
       },
-<<<<<<< HEAD
-      recipientWalletId: {
-        type: DataTypes.UUID,
-        allowNull: true,
-        references: {
-          model: "wallets",
-          key: "id",
-        },
-        onUpdate: "CASCADE",
-        onDelete: "SET NULL",
-      },
-      parentTransactionId: {
-=======
       
       recipient_wallet_id: {
         type: DataTypes.UUID,
@@ -74,7 +61,6 @@ module.exports = (sequelize, DataTypes) => {
         // No FK constraint
       },      
       parent_transaction_id: {
->>>>>>> c44c2b7aa36c58c6b4444f6d84cb79d079d90a34
         type: DataTypes.UUID,
         allowNull: true,
       },
@@ -95,24 +81,6 @@ module.exports = (sequelize, DataTypes) => {
     }
   );
 
-<<<<<<< HEAD
-  // Associations should be defined here
-  // Transaction.associate = (models) => {
-  //   Transaction.belongsTo(models.Wallet, {
-  //     foreignKey: "senderWalletId",
-  //     as: "senderWallet",
-  //     onDelete: "SET NULL",
-  //     onUpdate: "CASCADE",
-  //   });
-
-  //   Transaction.belongsTo(models.Wallet, {
-  //     foreignKey: "recipientWalletId",
-  //     as: "recipientWallet",
-  //     onDelete: "SET NULL",
-  //     onUpdate: "CASCADE",
-  //   });
-  // };
-=======
   // ✅ Define association function here
   Transaction.associate = (models) => {
     Transaction.belongsTo(models.Wallet, {
@@ -129,7 +97,6 @@ module.exports = (sequelize, DataTypes) => {
       onUpdate: "CASCADE",
     });
   };
->>>>>>> c44c2b7aa36c58c6b4444f6d84cb79d079d90a34
 
   return Transaction;
 };
