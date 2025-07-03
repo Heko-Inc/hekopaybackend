@@ -1,48 +1,40 @@
-const { Wallet, Transaction, WalletAuditTrail } = require("../config/modelsConfig/index");
+const { Transaction, Wallet, WalletAuditTrail } = require('../config/modelsConfig');
+const { sequelize } = require('../config/database/db');
+const { Op } = require('sequelize');
+const Decimal = require('decimal.js');
+const { v4: uuidv4 } = require('uuid');
 
-const { sequelize }= require("../config/database/db")
-
-const { v4:uuidv4 } = require("uuid");
-
-const { Op } = require("sequelize");
-
-const Decimal  = require("decimal.js")
-
-
-const sendInAppPaymentService = async ({ senderId, recipientId, amount, market_id, currency, description }) => {
-
+const sendInAppPayment = async ({
+  senderId,
+  recipientId,
+  amount,
+  marketId,
+  currency,
+  description
+}) => {
   const decimalAmount = new Decimal(amount);
-  
   const t = await sequelize.transaction();
 
   try {
-    
-    const senderWallet = await Wallet.findOne({
-      where: {
-        user_id: senderId,
-        currency,
-        market_id,
-        wallet_type: "primary",
-      },
-      transaction: t,
-      lock: t.LOCK.UPDATE,
-    });
-
-    const recipientWallet = await Wallet.findOne({
-      where: {
-        user_id: recipientId,
-        currency,
-        market_id,
-        wallet_type: "primary",
-      },
-      transaction: t,
-      lock: t.LOCK.UPDATE,
-    });
+    // Wallet lookups
+    const [senderWallet, recipientWallet] = await Promise.all([
+      Wallet.findOne({
+        where: { userId: senderId, currency, marketId, walletType: "primary" },
+        transaction: t,
+        lock: t.LOCK.UPDATE
+      }),
+      Wallet.findOne({
+        where: { userId: recipientId, currency, marketId, walletType: "primary" },
+        transaction: t,
+        lock: t.LOCK.UPDATE
+      })
+    ]);
 
     if (!senderWallet || !recipientWallet) {
-      throw new Error("Sender or recipient wallet not found.");
+      throw new Error("Sender or recipient wallet not found");
     }
 
+    // Fee calculations
     const feePercentage = new Decimal(0.01);
     const totalFee = decimalAmount.mul(feePercentage);
     const totalDebit = decimalAmount.plus(totalFee);
@@ -51,317 +43,254 @@ const sendInAppPaymentService = async ({ senderId, recipientId, amount, market_i
     const senderBnctSaving = totalFee.mul(0.7);
     const hekoRevenue = totalFee.mul(0.3);
 
-
+    // Balance checks
     if (new Decimal(senderWallet.balance).lt(totalDebit)) {
-      throw new Error("Insufficient balance to cover amount and fee.");
+      throw new Error("Insufficient balance");
     }
 
-    const senderBnctWallet = await Wallet.findOrCreate({
-      where: {
-        user_id: senderId,
-        currency,
-        market_id,
-        wallet_type: "bnct",
-      },
-      defaults: {
-        balance: "0",
-      },
-      transaction: t,
-    }).then(([wallet]) => wallet);
+    // Find or create BNCT wallets
+    const [senderBnctWallet, recipientBnctWallet] = await Promise.all([
+      Wallet.findOrCreate({
+        where: { userId: senderId, currency, marketId, walletType: "bnct" },
+        defaults: { balance: "0" },
+        transaction: t
+      }).then(([wallet]) => wallet),
+      Wallet.findOrCreate({
+        where: { userId: recipientId, currency, marketId, walletType: "bnct" },
+        defaults: { balance: "0" },
+        transaction: t
+      }).then(([wallet]) => wallet)
+    ]);
 
-
-    const recipientBnctWallet = await Wallet.findOrCreate({
-      where: {
-        user_id: recipientId,
-        currency,
-        market_id,
-        wallet_type: "bnct",
-      },
-      defaults: {
-        balance: "0",
-      },
-      transaction: t,
-    }).then(([wallet]) => wallet);
-
-
+    // Update balances
     senderWallet.balance = new Decimal(senderWallet.balance).minus(totalDebit).toString();
     recipientWallet.balance = new Decimal(recipientWallet.balance).plus(amountToRecipient).toString();
     senderBnctWallet.balance = new Decimal(senderBnctWallet.balance).plus(senderBnctSaving).toString();
     recipientBnctWallet.balance = new Decimal(recipientBnctWallet.balance).plus(recipientBnctAddition).toString();
 
+    // Save wallets and create audit trails
+    await Promise.all([
+      senderWallet.save({ transaction: t }),
+      recipientWallet.save({ transaction: t }),
+      senderBnctWallet.save({ transaction: t }),
+      recipientBnctWallet.save({ transaction: t }),
+      WalletAuditTrail.bulkCreate([
+        {
+          walletId: senderWallet.id,
+          action: 'debit',
+          amount: totalDebit.toString(),
+          balanceBefore: new Decimal(senderWallet.balance).plus(totalDebit).toString(),
+          balanceAfter: senderWallet.balance,
+          performedBy: senderId,
+          reason: 'Sent in-app payment'
+        },
+        {
+          walletId: recipientWallet.id,
+          action: 'credit',
+          amount: amountToRecipient.toString(),
+          balanceBefore: new Decimal(recipientWallet.balance).minus(amountToRecipient).toString(),
+          balanceAfter: recipientWallet.balance,
+          performedBy: senderId,
+          reason: 'Received in-app payment'
+        },
+        {
+          walletId: senderBnctWallet.id,
+          action: 'credit',
+          amount: senderBnctSaving.toString(),
+          balanceBefore: new Decimal(senderBnctWallet.balance).minus(senderBnctSaving).toString(),
+          balanceAfter: senderBnctWallet.balance,
+          performedBy: senderId,
+          reason: 'BNCT savings credited'
+        },
+        {
+          walletId: recipientBnctWallet.id,
+          action: 'credit',
+          amount: recipientBnctAddition.toString(),
+          balanceBefore: new Decimal(recipientBnctWallet.balance).minus(recipientBnctAddition).toString(),
+          balanceAfter: recipientBnctWallet.balance,
+          performedBy: senderId,
+          reason: 'BNCT reward credited'
+        }
+      ], { transaction: t })
+    ]);
 
-    await senderWallet.save({ transaction: t });
-    await WalletAuditTrail.create({
-      id: uuidv4(),
-      wallet_id: senderWallet.id,
-      action: 'debit',
-      amount: totalDebit.toFixed(2),
-      balance_before: (new Decimal(senderWallet.balance)).plus(totalDebit).toFixed(2),
-      balance_after: senderWallet.balance,
-      transaction_id: null, 
-      performed_by: senderId,
-      reason: 'Sent in-app payment',
-      created_at: new Date(),
-      updated_at: new Date(),
-    }, { transaction: t });
-    
-    await recipientWallet.save({ transaction: t });
-
-    await WalletAuditTrail.create({
-      id: uuidv4(),
-      wallet_id: recipientWallet.id,
-      action: 'credit',
-      amount: amountToRecipient.toFixed(2),
-      balance_before: (new Decimal(recipientWallet.balance)).minus(amountToRecipient).toFixed(2),
-      balance_after: recipientWallet.balance,
-      transaction_id: null,
-      performed_by: senderId,
-      reason: 'Received in-app payment',
-      created_at: new Date(),
-      updated_at: new Date(),
-    }, { transaction: t });
-
-    
-    await senderBnctWallet.save({ transaction: t });
-
-    await WalletAuditTrail.create({
-      id: uuidv4(),
-      wallet_id: senderBnctWallet.id,
-      action: 'credit',
-      amount: senderBnctSaving.toFixed(2),
-      balance_before: (new Decimal(senderBnctWallet.balance)).minus(senderBnctSaving).toFixed(2),
-      balance_after: senderBnctWallet.balance,
-      transaction_id: null,
-      performed_by: senderId,
-      reason: 'BNCT savings credited to sender',
-      created_at: new Date(),
-      updated_at: new Date(),
-    }, { transaction: t });
-
-    
-    await recipientBnctWallet.save({ transaction: t });
-
-    await WalletAuditTrail.create({
-      id: uuidv4(),
-      wallet_id: recipientBnctWallet.id,
-      action: 'credit',
-      amount: recipientBnctAddition.toFixed(2),
-      balance_before: (new Decimal(recipientBnctWallet.balance)).minus(recipientBnctAddition).toFixed(2),
-      balance_after: recipientBnctWallet.balance,
-      transaction_id: null,
-      performed_by: senderId,
-      reason: 'BNCT reward credited to recipient',
-      created_at: new Date(),
-      updated_at: new Date(),
-    }, { transaction: t });
-    
-
-    const reference_id = "MPESA-" + uuidv4();
+    // Create transaction record
+    const referenceId = `MPESA-${uuidv4()}`;
     await Transaction.create({
-      reference_id,
-      transaction_type: "send",
+      referenceId,
+      transactionType: "send",
       status: "completed",
-      total_amount: decimalAmount.toString(),
+      totalAmount: decimalAmount.toString(),
       currency,
-      market_id,
-      fee_percentage: 1.0,
-      fee_amount: totalFee.toString(),
+      marketId,
+      feePercentage: 1.0,
+      feeAmount: totalFee.toString(),
       metadata: {
-        sender_bnct: senderBnctSaving.toFixed(2),
-        recipient_bnct: recipientBnctAddition.toFixed(2),
-        hekopay_revenue: hekoRevenue.toFixed(2),
-        sender_id: senderId,
-        recipient_id: recipientId,
+        senderBnct: senderBnctSaving.toString(),
+        recipientBnct: recipientBnctAddition.toString(),
+        hekoRevenue: hekoRevenue.toString()
       },
-      description: description || "In-app transfer with BNCT savings",
-      initiated_by: senderId,
-      sender_wallet_id: senderWallet.id,
-      recipient_wallet_id: recipientWallet.id,
-      created_at: new Date(),
-      completed_at: new Date(),
+      description: description || "In-app transfer",
+      initiatedBy: senderId,
+      senderWalletId: senderWallet.id,
+      recipientWalletId: recipientWallet.id,
+      completedAt: new Date()
     }, { transaction: t });
 
     await t.commit();
 
     return {
-      reference_id,
-      amount_sent: decimalAmount.toFixed(2),
-      amount_received: amountToRecipient.toFixed(2),
-      fee_charged: totalFee.toFixed(2),
-      sender_bnct: senderBnctSaving.toFixed(2),
-      recipient_bnct: recipientBnctAddition.toFixed(2),
-      hekopay_revenue: hekoRevenue.toFixed(2),
+      referenceId,
+      amountSent: decimalAmount.toString(),
+      amountReceived: amountToRecipient.toString(),
+      feeCharged: totalFee.toString(),
+      senderBnct: senderBnctSaving.toString(),
+      recipientBnct: recipientBnctAddition.toString(),
+      hekoRevenue: hekoRevenue.toString()
     };
-  } catch (err) {
+  } catch (error) {
     await t.rollback();
-    throw err;
+    throw error;
   }
 };
 
-
-
-
-const getAllTransactionsService = async ({
+const getAllTransactions = async ({
   senderId,
   recipientId,
-  market_id,
+  marketId,
   status,
   page = 1,
-  limit = 20,
+  limit = 20
 }) => {
   const offset = (page - 1) * limit;
-
   const where = {};
 
-  if (senderId) {
-    where.initiated_by = senderId;
-  }
+  if (senderId) where.initiatedBy = senderId;
+  if (recipientId) where.recipientWalletId = recipientId;
+  if (marketId) where.marketId = marketId;
+  if (status) where.status = status;
 
-  if (recipientId) {
-    where.recipient_wallet_id = recipientId;
-  }
-
-  if (market_id) {
-    where.market_id = market_id;
-  }
-
-  if (status) {
-    where.status = status;
-  }
-
-  const { rows: transactions, count: total } = await Transaction.findAndCountAll({
+  const { rows, count } = await Transaction.findAndCountAll({
     where,
     include: [
-      {
-        model: Wallet,
-        as: "senderWallet",
-        attributes: ["id", "user_id", "wallet_type", "currency"],
+      { 
+        model: Wallet, 
+        as: 'senderWallet', 
+        attributes: ['id', 'userId', 'walletType', 'currency'] 
       },
-      {
-        model: Wallet,
-        as: "recipientWallet",
-        attributes: ["id", "user_id", "wallet_type", "currency"],
-      },
+      { 
+        model: Wallet, 
+        as: 'recipientWallet', 
+        attributes: ['id', 'userId', 'walletType', 'currency'] 
+      }
     ],
-    order: [["created_at", "DESC"]],
+    order: [['createdAt', 'DESC']],
     limit,
-    offset,
+    offset
   });
 
-  return {
-    transactions,
-    total,
-    page,
-    limit,
+  return { 
+    transactions: rows, 
+    total: count, 
+    page, 
+    limit 
   };
 };
 
-
-const getTransactionByIdService = async (transactionId) =>{
-
+const getTransactionById = async (id) => {
   const transaction = await Transaction.findOne({
-
-    where:{id:transactionId},
-
-    include:[
+    where: { id },
+    include: [
       {
-        model:Wallet,
-        as:"senderWallet",
-        attributes: ["id", "user_id", "wallet_type", "currency"],
-      },{
-        model:Wallet,
-        as:"recipientWallet",
-        attributes:["id","user_id","wallet_type","currency"],
+        model: Wallet,
+        as: 'senderWallet',
+        attributes: ['id', 'userId', 'walletType', 'currency']
+      },
+      {
+        model: Wallet,
+        as: 'recipientWallet',
+        attributes: ['id', 'userId', 'walletType', 'currency']
       }
     ]
-  })
-  if(!transaction){
-    throw new Error("Transaction not found");
+  });
+  
+  if (!transaction) {
+    throw new Error('Transaction not found');
   }
-  return  transaction;
-}
+  
+  return transaction;
+};
 
-
-const getUserTransactionsService = async ({
+const getUserTransactions = async ({
   userId,
   page = 1,
   limit = 20,
-  market_id,
+  marketId,
   status,
-  baseUrl,
+  baseUrl
 }) => {
   const offset = (page - 1) * limit;
+  const where = { [Op.or]: [{ initiatedBy: userId }] };
 
-  const where = {
-    [Op.or]: [{ initiated_by: userId }],
-  };
+  if (marketId) where.marketId = marketId;
+  if (status) where.status = status;
 
-  if (market_id) {
-    where.market_id = market_id;
-  }
-
-  if (status) {
-    where.status = status;
-  }
-
-  const { rows: transactions, count: total } = await Transaction.findAndCountAll({
+  const { rows, count } = await Transaction.findAndCountAll({
     where,
     include: [
-      {
-        model: Wallet,
-        as: "senderWallet",
-        attributes: ["id", "user_id", "wallet_type", "currency"],
-        required: false,
+      { 
+        model: Wallet, 
+        as: 'senderWallet', 
+        attributes: ['id', 'userId'], 
+        required: false 
       },
-      {
-        model: Wallet,
-        as: "recipientWallet",
-        attributes: ["id", "user_id", "wallet_type", "currency"],
-        required: false,
-      },
+      { 
+        model: Wallet, 
+        as: 'recipientWallet', 
+        attributes: ['id', 'userId'], 
+        required: false 
+      }
     ],
-    order: [["created_at", "DESC"]],
+    order: [['createdAt', 'DESC']],
     limit,
     offset,
-    distinct: true,
+    distinct: true
   });
 
-  const filtered = transactions.filter((txn) => {
-    const senderMatch = txn.senderWallet?.user_id === userId;
-    const recipientMatch = txn.recipientWallet?.user_id === userId;
-    const initiatedMatch = txn.initiated_by === userId;
-    return senderMatch || recipientMatch || initiatedMatch;
-  });
+  const filtered = rows.filter(txn =>
+    txn.senderWallet?.userId === userId ||
+    txn.recipientWallet?.userId === userId ||
+    txn.initiatedBy === userId
+  );
 
-  const totalPages = Math.ceil(total / limit);
-
-  const buildUrl = (pageNum) => {
-    const params = new URLSearchParams({
-      userId,
-      page: pageNum,
-      limit,
-      ...(market_id && { market_id }),
-      ...(status && { status }),
+  const totalPages = Math.ceil(count / limit);
+  const buildUrl = pageNum => {
+    const params = new URLSearchParams({ 
+      userId, 
+      page: pageNum, 
+      limit 
     });
+    
+    if (marketId) params.set('marketId', marketId);
+    if (status) params.set('status', status);
+    
     return `${baseUrl}?${params.toString()}`;
   };
 
   return {
-    success: true,
-    message: "User transactions retrieved successfully",
-    data: {
-      transactions: filtered,
-      total,
-      page,
-      limit,
-      totalPages,
-      next: page < totalPages ? buildUrl(page + 1) : null,
-      prev: page > 1 ? buildUrl(page - 1) : null,
-    },
+    transactions: filtered,
+    total: count,
+    page,
+    limit,
+    totalPages,
+    next: page < totalPages ? buildUrl(page + 1) : null,
+    prev: page > 1 ? buildUrl(page - 1) : null
   };
 };
 
-
-
-
-module.exports = { sendInAppPaymentService,getAllTransactionsService,getTransactionByIdService,getUserTransactionsService}
+module.exports = {
+  sendInAppPayment,
+  getAllTransactions,
+  getTransactionById,
+  getUserTransactions
+};

@@ -1,20 +1,32 @@
-const asyncMiddleware = require("../middlewares/asyncMiddleware")
+const Router = require('express').Router();
+const asyncMiddleware = require('../middlewares/asyncMiddleware');
+const validateRequest = require('../middlewares/validateRequest');
+const TransactionController = require('./transaction.controller');
+const TransactionSchema = require('./transaction.validator');
 
-const TransactionController = require("./transaction.controller");
+Router.post(
+  '/send',
+  validateRequest(TransactionSchema.sendPaymentSchema),
+  asyncMiddleware(TransactionController.sendInAppPayment)
+);
 
-const Router = require("express").Router();
+Router.get(
+  '/',
+  validateRequest(TransactionSchema.paginationSchema, 'query'),
+  asyncMiddleware(TransactionController.getAllTransactions)
+);
 
+Router.get(
+  '/:id',
+  validateRequest(TransactionSchema.transactionIdSchema, 'params'),
+  asyncMiddleware(TransactionController.getTransactionById)
+);
 
-Router.post("/transfer", TransactionController.sentInAppPayment);
-
-
-Router.get("/",asyncMiddleware(TransactionController.getAllTransactions))
-
-
-Router.get("/:id",asyncMiddleware(TransactionController.getTransactionById))
-
-
-Router.get("/user",asyncMiddleware(TransactionController.getUserTransactionsController))
-
+Router.get(
+  '/user/:userId',
+  validateRequest(TransactionSchema.userTransactionsSchema, 'params'),
+  validateRequest(TransactionSchema.paginationSchema, 'query'),
+  asyncMiddleware(TransactionController.getUserTransactions)
+);
 
 module.exports = Router;

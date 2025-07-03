@@ -1,133 +1,27 @@
-const TransactionService = require("./transaction.service");
+const TransactionService = require('./transaction.service');
+const asyncMiddleware = require('../middlewares/asyncMiddleware');
 
-const asyncMiddleware = require("../middlewares/asyncMiddleware");
-
-const getBaseURL = require("../utils/getBaseUrl");
-
-const sentInAppPayment = asyncMiddleware(async (req, res, next) => {
-
-  const { senderId, recipientId, amount, market_id, currency, description } = req.body;
-
-  console.log(req.body);
-
-  if (!senderId || !recipientId || !amount || !market_id || !currency) {
-    return res.status(400).json({ message: "Missing required fields" });
-  }
-  
-  const result = await TransactionService.sendInAppPaymentService({
-    senderId,
-    recipientId,
-    amount,
-    market_id,
-    currency,
-    description,
-  });
-
-  return res.status(200).json({
-    message: "Transfer successful",
-    ...result,
-  });
-  
+exports.sendInAppPayment = asyncMiddleware(async (req, res) => {
+  const result = await TransactionService.sendInAppPayment(req.body);
+  res.sendResponse(result, "Transfer successful");
 });
 
+exports.getAllTransactions = asyncMiddleware(async (req, res) => {
+  const result = await TransactionService.getAllTransactions(req.query);
+  res.sendResponse(result);
+});
 
-const getAllTransactions = async (req, res, next) => {
-  try {
-    const {
-      senderId,
-      recipientId,
-      market_id,
-      status,
-      page = 1,
-      limit = 20,
-    } = req.query;
+exports.getTransactionById = asyncMiddleware(async (req, res) => {
+  const transaction = await TransactionService.getTransactionById(req.params.id);
+  res.sendResponse(transaction, "Transaction retrieved successfully");
+});
 
-    const parsedPage = parseInt(page);
-    const parsedLimit = parseInt(limit);
+exports.getUserTransactions = asyncMiddleware(async (req, res) => {
+  const result = await TransactionService.getUserTransactions({
+    ...req.query,
+    baseUrl: `${req.protocol}://${req.get('host')}${req.baseUrl}${req.path}`
+  });
+  res.sendResponse(result);
+});
 
-    const result = await TransactionService.getAllTransactionsService({
-      senderId,
-      recipientId,
-      market_id,
-      status,
-      page: parsedPage,
-      limit: parsedLimit,
-    });
-
-    const baseUrl = `${req.protocol}://${req.get("host")}${req.baseUrl}${req.path}`;
-
-    const queryWithoutPage = { ...req.query };
-    
-    delete queryWithoutPage.page;
-
-    const queryString = new URLSearchParams(queryWithoutPage).toString();
-
-    const nextPageUrl =
-      parsedPage * parsedLimit < result.total
-        ? `${baseUrl}?${queryString}&page=${parsedPage + 1}&limit=${parsedLimit}`
-        : null;
-
-    const prevPageUrl =
-      parsedPage > 1
-        ? `${baseUrl}?${queryString}&page=${parsedPage - 1}&limit=${parsedLimit}`
-        : null;
-
-    res.status(200).json({
-      transactions: result.transactions,
-      total: result.total,
-      page: parsedPage,
-      limit: parsedLimit,
-      nextPageUrl,
-      prevPageUrl,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-const getTransactionById = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-
-    const transaction = await TransactionService.getTransactionByIdService(id);
-
-    res.status(200).json({
-      success: true,
-      message: "Transaction retrieved successfully",
-      data: transaction,
-    });
-  } catch (error) {
-    next(error); 
-  }
-};
-
-
-const getUserTransactionsController = async (req, res, next) => {
-  try {
-    const { userId, page = 1, limit = 20, market_id, status } = req.query;
-
-    if (!userId) {
-      return res.status(400).json({ message: "User ID is required" });
-    }
-
-    const baseUrl = getBaseURL(req);
-
-    const result = await TransactionService.getUserTransactionsService({
-      userId,
-      page: parseInt(page),
-      limit: parseInt(limit),
-      market_id,
-      status,
-      baseUrl,
-    });
-
-    res.status(200).json(result);
-
-  } catch (error) {
-    next(error);
-  }
-};
-
-module.exports = {
-  sentInAppPayment,getAllTransactions,getTransactionById,getUserTransactionsController
-};
+module.exports = exports;

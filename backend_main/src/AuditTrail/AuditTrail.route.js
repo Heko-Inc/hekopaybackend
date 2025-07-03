@@ -1,27 +1,30 @@
-const Router = require("express").Router()
+const Router = require('express').Router();
+const asyncMiddleware = require('../middlewares/asyncMiddleware');
+const validateRequest = require('../middlewares/validateRequest');
+const AuditTrailController = require('./auditTrail.controller');
+const AuditTrailValidator = require('./auditTrail.validator');
 
+// Get all audit trails with pagination
+Router.get(
+  '/',
+  validateRequest(AuditTrailValidator.paginationSchema, 'query'),
+  asyncMiddleware(AuditTrailController.getAllAuditTrails)
+);
 
+// Get audit trails by wallet ID
+Router.get(
+  '/wallet/:walletId',
+  validateRequest(AuditTrailValidator.walletIdSchema, 'params'),
+  validateRequest(AuditTrailValidator.paginationSchema, 'query'),
+  asyncMiddleware(AuditTrailController.getAuditTrailByWalletId)
+);
 
-const asyncWrapper = require("../middlewares/asyncMiddleware")
+// Get audit trails by transaction ID
+Router.get(
+  '/transaction/:transactionId',
+  validateRequest(AuditTrailValidator.transactionIdSchema, 'params'),
+  validateRequest(AuditTrailValidator.paginationSchema, 'query'),
+  asyncMiddleware(AuditTrailController.getAuditTrailByTransactionId)
+);
 
-
-const AuditTrailController = require("./AuditTrail.controller")
-
-
-
-
-
-
-Router.get('/',asyncWrapper(AuditTrailController.getAllAuditTrails))
-
-
-Router.get('/:walletId', asyncWrapper(AuditTrailController.getAuditTrailByWalletId));
-
-
-Router.get('/:transactionId', asyncWrapper(AuditTrailController.getAuditTrailByTransactionId));
-
-
-
-
-
-module.exports = Router
+module.exports = Router;

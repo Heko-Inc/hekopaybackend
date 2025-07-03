@@ -5,28 +5,58 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       defaultValue: DataTypes.UUIDV4,
     },
-    wallet_id: {
+    walletId: {
       type: DataTypes.UUID,
       allowNull: false,
+      field: 'wallet_id' // Database column name
     },
-    action: DataTypes.STRING,
-    amount: DataTypes.DECIMAL,
-    balance_before: DataTypes.DECIMAL,
-    balance_after: DataTypes.DECIMAL,
-    transaction_id: DataTypes.UUID,
-    performed_by: DataTypes.UUID,
-    reason: DataTypes.TEXT,
-    created_at: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
+    action: {
+      type: DataTypes.STRING,
+      allowNull: false
     },
-    updated_at: {                           // 👈 Add this
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
+    amount: {
+      type: DataTypes.DECIMAL(20, 8),
+      allowNull: false
     },
+    balanceBefore: {
+      type: DataTypes.DECIMAL(20, 8),
+      allowNull: false,
+      field: 'balance_before'
+    },
+    balanceAfter: {
+      type: DataTypes.DECIMAL(20, 8),
+      allowNull: false,
+      field: 'balance_after'
+    },
+    transactionId: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      field: 'transaction_id'
+    },
+    performedBy: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      field: 'performed_by'
+    },
+    reason: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    }
   }, {
     tableName: 'wallet_audit_trail',
-    timestamps: false,
+    timestamps: true,
+    underscored: true,
+    // indexes: [
+    //   {
+    //     fields: ['wallet_id']
+    //   },
+    //   {
+    //     fields: ['transaction_id']
+    //   },
+    //   {
+    //     fields: ['created_at']
+    //   }
+    // ]
   });
 
   return WalletAuditTrail;

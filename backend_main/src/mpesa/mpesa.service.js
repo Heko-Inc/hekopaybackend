@@ -1,80 +1,74 @@
 const axios = require("axios");
-require("dotenv").config();
-
-// let token = '';
+const { Wallet } = require("../config/modelsConfig");
+const Decimal = require('decimal.js');
 
 const generateMpesaToken = async () => {
   const credentials = `${process.env.SAFARICOM_CONSUMER_KEY}:${process.env.SAFARICOM_CONSUMER_SECRET}`;
-  const encoded = Buffer.from(credentials).toString("base64");
-
-  const url =
-    process.env.ENV !== "production"
-      ? process.env.STK_TOKEN_URL_TEST
-      : process.env.STK_TOKEN_URL_PROD;
-
-  const response = await axios.get(
-    `
-    ${url}`,
-    {
-      headers: {
-        Authorization: `Basic ${encoded}`,
-      },
+  const response = await axios.get(process.env.STK_TOKEN_URL, {
+    headers: {
+      Authorization: `Basic ${Buffer.from(credentials).toString('base64')}`
     }
-  );
-
+  });
   return response.data.access_token;
 };
 
 const sendStkPush = async ({ phone, amount, wallet_id }) => {
   const token = await generateMpesaToken();
-
-  const shortCode = process.env.DARAJA_SHORT_CODE;
-
-  const passKey = process.env.SAFARICOM_STK_PUSH_PASS_KEY;
-
-  const url =
-    process.env.ENV !== "production"
-      ? process.env.LIPA_NA_MPESA_URL_TEST
-      : process.env.LIPA_NA_MPESA_URL_PRODUCTION;
-
-  const date = new Date();
-
-  const timestamp =
-    date.getFullYear().toString() +
-    String(date.getMonth() + 1).padStart(2, "0") +
-    String(date.getDate()).padStart(2, "0") +
-    String(date.getHours()).padStart(2, "0") +
-    String(date.getMinutes()).padStart(2, "0") +
-    String(date.getSeconds()).padStart(2, "0");
-
-  const password = Buffer.from(shortCode + passKey + timestamp).toString(
-    "base64"
-  );
+  const timestamp = new Date().toISOString().replace(/[-:T.]/g, '').slice(0, 14);
+  const password = Buffer.from(
+    `${process.env.DARAJA_SHORT_CODE}${process.env.SAFARICOM_STK_PUSH_PASS_KEY}${timestamp}`
+  ).toString('base64');
 
   const payload = {
-    BusinessShortCode: shortCode,
+    BusinessShortCode: process.env.DARAJA_SHORT_CODE,
     Password: password,
     Timestamp: timestamp,
     TransactionType: "CustomerPayBillOnline",
     Amount: amount,
-    PartyA: `254${phone.substring(1)}`,
-    PartyB: shortCode,
-    PhoneNumber: `254${phone.substring(1)}`,
-    CallBackURL: `${process.env.CallBackURL}/api/v1/stk/push/callback`,
+    PartyA: `254${phone.substring(phone.length - 9)}`, // Ensure Kenyan format
+    PartyB: process.env.DARAJA_SHORT_CODE,
+    PhoneNumber: `254${phone.substring(phone.length - 9)}`,
+    CallBackURL: `${process.env.API_BASE_URL}/mpesa/callback`,
     AccountReference: wallet_id,
-    TransactionDesc: "Wallet deposit",
+    TransactionDesc: "Wallet deposit"
   };
 
-  const response = await axios.post(url, payload, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+  const response = await axios.post(process.env.LIPA_NA_MPESA_URL, payload, {
+    headers: { Authorization: `Bearer ${token}` }
   });
 
-  return response.data;
+  return {
+    responseCode: response.data.ResponseCode,
+    checkoutRequestID: response.data.CheckoutRequestID,
+    merchantRequestID: response.data.MerchantRequestID
+  };
+};
+
+const processMpesaCallback = async ({ phone, amount, receiptNumber, walletId }) => {
+  if (!walletId) throw new Error('Missing wallet reference');
+  
+  const numericAmount = new Decimal(amount);
+  if (numericAmount.isNaN() || numericAmount.lte(0)) {
+    throw new Error('Invalid amount received');
+  }
+
+  const wallet = await Wallet.findOne({ where: { id: walletId } });
+  if (!wallet) throw new Error('Wallet not found');
+
+  wallet.balance = new Decimal(wallet.balance).plus(numericAmount).toString();
+  await wallet.save();
+
+  return {
+    receiptNumber,
+    amount: numericAmount.toString(),
+    walletId,
+    newBalance: wallet.balance,
+    phone
+  };
 };
 
 module.exports = {
   generateMpesaToken,
   sendStkPush,
+  processMpesaCallback
 };

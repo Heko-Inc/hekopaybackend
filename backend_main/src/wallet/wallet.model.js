@@ -52,17 +52,5 @@ module.exports = (sequelize, DataTypes) => {
     }
   );
 
-  // Wallet.associate = (models) => {
-  //   Wallet.hasMany(models.Transaction, {
-  //     foreignKey: "senderWalletId",
-  //     as: "sentTransactions",
-  //   });
-
-  //   Wallet.hasMany(models.Transaction, {
-  //     foreignKey: "recipientWalletId",
-  //     as: "receivedTransactions",
-  //   });
-  // };
-
   return Wallet;
 };
