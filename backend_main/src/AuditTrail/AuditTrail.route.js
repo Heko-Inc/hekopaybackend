@@ -1,8 +1,8 @@
 const Router = require('express').Router();
 const asyncMiddleware = require('../middlewares/asyncMiddleware');
 const validateRequest = require('../middlewares/validateRequest');
-const AuditTrailController = require('./auditTrail.controller');
 const AuditTrailValidator = require('./auditTrail.validator');
+const AuditTrailController = require("./auditTrail.controller")
 
 // Get all audit trails with pagination
 Router.get(

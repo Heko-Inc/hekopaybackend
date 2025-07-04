@@ -8,7 +8,6 @@ const MpesaValidator = require('./mpesa.validator');
 Router.post(
     '/stk-push',
     validateRequest(MpesaValidator.stkPushSchema),
-    asyncMiddleware(MpesaController.generateToken),
     asyncMiddleware(MpesaController.stkPush)
 );
 

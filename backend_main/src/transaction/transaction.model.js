@@ -52,13 +52,11 @@ module.exports = (sequelize, DataTypes) => {
       senderWalletId: {
         type: DataTypes.UUID,
         allowNull: true,
-        // No FK constraint
       },
       
       recipientWwalletId: {
         type: DataTypes.UUID,
         allowNull: true,
-        // No FK constraint
       },      
       parentTransactionId: {
         type: DataTypes.UUID,

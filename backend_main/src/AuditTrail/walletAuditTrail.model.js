@@ -8,7 +8,6 @@ module.exports = (sequelize, DataTypes) => {
     walletId: {
       type: DataTypes.UUID,
       allowNull: false,
-      field: 'wallet_id' // Database column name
     },
     action: {
       type: DataTypes.STRING,
@@ -21,22 +20,18 @@ module.exports = (sequelize, DataTypes) => {
     balanceBefore: {
       type: DataTypes.DECIMAL(20, 8),
       allowNull: false,
-      field: 'balance_before'
     },
     balanceAfter: {
       type: DataTypes.DECIMAL(20, 8),
       allowNull: false,
-      field: 'balance_after'
     },
     transactionId: {
       type: DataTypes.UUID,
       allowNull: true,
-      field: 'transaction_id'
     },
     performedBy: {
       type: DataTypes.UUID,
       allowNull: false,
-      field: 'performed_by'
     },
     reason: {
       type: DataTypes.TEXT,

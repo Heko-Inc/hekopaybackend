@@ -1,17 +1,16 @@
-const asyncMiddleware = require("../middlewares/asyncMiddleware");
 const MpesaService = require("./mpesa.service");
 
-exports.generateToken = asyncMiddleware(async (req, res, next) => {
+exports.generateToken = async (req, res, next) => {
   req.mpesaToken = await MpesaService.generateMpesaToken();
   next();
-});
+};
 
-exports.stkPush = asyncMiddleware(async (req, res) => {
+exports.stkPush = async (req, res) => {
   const result = await MpesaService.sendStkPush(req.body);
   res.sendResponse(result, "STK push initiated successfully");
-});
+};
 
-exports.handleMpesaCallback = asyncMiddleware(async (req, res) => {
+exports.handleMpesaCallback = async (req, res) => {
   const callbackData = req.body.Body.stkCallback;
   const metadata = callbackData.CallbackMetadata?.Item || [];
 
@@ -24,4 +23,4 @@ exports.handleMpesaCallback = asyncMiddleware(async (req, res) => {
   });
 
   res.sendResponse(result, "Payment processed successfully");
-});
+};
