@@ -14,7 +14,7 @@ module.exports = (sequelize, DataTypes) => {
     balance_before: DataTypes.DECIMAL,
     balance_after: DataTypes.DECIMAL,
     transaction_id: DataTypes.UUID,
-    performed_by: DataTypes.UUID,
+    performed_by: DataTypes.STRING,
     reason: DataTypes.TEXT,
     created_at: {
       type: DataTypes.DATE,
