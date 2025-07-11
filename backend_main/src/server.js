@@ -14,7 +14,7 @@ const KycRoutes = require("./kyc/kyc.routes")
 const errorHandler = require("./middlewares/errorHandler");
 const responseFormatter = require("./middlewares/responseFormatter");
 const { verifyToken, tokenValidator } = require("./middlewares/verifyToken");
-
+// require("./scripts/insertDocumentTypes")()
 
 app.use(cors({
   origin: ["http://localhost:5173", "https://dashboard.hekoinc.com"], // Your frontend URL
@@ -30,23 +30,23 @@ app.get("/", (req, res) => {
   });
 });
 
-app.use("/api/v1/auth", require("./auth/auth.routes"));
+app.use("/staging/api/v1/auth", require("./auth/auth.routes"));
 
-app.use(tokenValidator())
-app.use("/api/v1/users", UsersRoute);
-app.use("/api/v1/currencies", require("./currency/currency.route"));
-app.use("/api/v1/markets", MarketRoutes);
-app.use("/api/v1/kyc", KycRoutes);
-app.use("/api/v1/wallets", WalletRoutes);
-app.use("/api/v1/transactions", TransactionRoute);
-app.use("/api/v1/stk/push", mpesaRoutes);
-app.use("/api/v1/transaction", TransactionRoute);
-app.use("/api/v1/wallet-audit-trails", require("./AuditTrail/AuditTrail.route"));
+// app.use(tokenValidator())
+app.use("/staging/api/v1/users", UsersRoute);
+app.use("/staging/api/v1/currencies", require("./currency/currency.route"));
+app.use("/staging/api/v1/markets", MarketRoutes);
+app.use("/staging/api/v1/kyc", KycRoutes);
+app.use("/staging/api/v1/wallets", WalletRoutes);
+app.use("/staging/api/v1/transactions", TransactionRoute);
+app.use("/staging/api/v1/stk/push", mpesaRoutes);
+app.use("/staging/api/v1/transaction", TransactionRoute);
+app.use("/staging/api/v1/wallet-audit-trails", require("./AuditTrail/AuditTrail.route"));
 
 
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, async () => {
   try {
     await connectDatabase();

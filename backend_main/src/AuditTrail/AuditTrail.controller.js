@@ -1,4 +1,4 @@
-const AuditTrailService = require('./auditTrail.service');
+const AuditTrailService = require('./AuditTrail.service');
 
 exports.getAllAuditTrails = async (req, res) => {
   const result = await AuditTrailService.getAllAuditTrails(req.query);
