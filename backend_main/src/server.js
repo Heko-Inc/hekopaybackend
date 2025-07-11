@@ -16,7 +16,11 @@ const responseFormatter = require("./middlewares/responseFormatter");
 const { verifyToken, tokenValidator } = require("./middlewares/verifyToken");
 
 
-app.use(cors());
+app.use(cors({
+  origin: ["http://localhost:5173", "https://dashboard.hekoinc.com"], // Your frontend URL
+  credentials: true, // Allow cookies and headers to be sent
+  methods: ["GET", "HEAD", "OPTIONS", "POST", "PUT", "DELETE"], //
+}));
 app.use(express.json());
 app.use(responseFormatter); // Response Formatter
 app.get("/", (req, res) => {
@@ -36,8 +40,8 @@ app.use("/api/v1/kyc", KycRoutes);
 app.use("/api/v1/wallets", WalletRoutes);
 app.use("/api/v1/transactions", TransactionRoute);
 app.use("/api/v1/stk/push", mpesaRoutes);
-app.use("/api/v1/transaction",TransactionRoute);
-app.use("/api/v1/wallet-audit-trails",require("./AuditTrail/AuditTrail.route"));
+app.use("/api/v1/transaction", TransactionRoute);
+app.use("/api/v1/wallet-audit-trails", require("./AuditTrail/AuditTrail.route"));
 
 
 app.use(errorHandler);
