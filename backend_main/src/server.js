@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 require("dotenv").config();
+const cookieParser = require("cookie-parser");
 const connectDatabase = require("./config/database/connectionDb");
 
 const UsersRoute = require("./user/user.routes");
@@ -15,13 +16,13 @@ const errorHandler = require("./middlewares/errorHandler");
 const responseFormatter = require("./middlewares/responseFormatter");
 const { verifyToken, tokenValidator } = require("./middlewares/verifyToken");
 // require("./scripts/insertDocumentTypes")()
-
+app.use(cookieParser());
+app.use(express.json());
 app.use(cors({
   origin: ["http://localhost:5173", "https://dashboard.hekoinc.com"], // Your frontend URL
   credentials: true, // Allow cookies and headers to be sent
   methods: ["GET", "HEAD", "OPTIONS", "POST", "PUT", "DELETE"], //
 }));
-app.use(express.json());
 app.use(responseFormatter); // Response Formatter
 app.get("/", (req, res) => {
   res.status(200).json({
@@ -32,7 +33,7 @@ app.get("/", (req, res) => {
 
 app.use("/staging/api/v1/auth", require("./auth/auth.routes"));
 
-// app.use(tokenValidator())
+app.use(tokenValidator())
 app.use("/staging/api/v1/users", UsersRoute);
 app.use("/staging/api/v1/currencies", require("./currency/currency.route"));
 app.use("/staging/api/v1/markets", MarketRoutes);

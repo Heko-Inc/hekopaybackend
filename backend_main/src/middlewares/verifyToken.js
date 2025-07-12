@@ -8,9 +8,9 @@ exports.verifyToken = (roles = []) => async (req, res, next) => {
     let token;
     if (
       req.headers.authorization &&
-      req.headers.authorization.startsWith('Bearer')
+      req.headers?.authorization?.startsWith('Bearer')
     ) {
-      token = req.headers.authorization.split(' ')[1];
+      token = req.headers?.authorization?.split(' ')[1];
     }
     if (!token) {
       throw new AppError('Authentication token missing', 401);
@@ -51,17 +51,31 @@ exports.verifyToken = (roles = []) => async (req, res, next) => {
 };
 exports.tokenValidator = () => async (req, res, next) => {
   try {
-    const token = req.headers.authorization.split(' ')[1];
-    if (!token) {
-      return res.sendError({ message: "Access denied. No token provided.", name: "TokenNotFoundError" }, 401);
+    let token;
+    
+    // Check Authorization header first
+    if (req.headers?.authorization?.startsWith('Bearer ')) {
+      token = req.headers.authorization.split(' ')[1];
+    } 
+    // If not in header, check cookies
+    else if (req.cookies?.token) {
+      token = req.cookies.token;
     }
+
+    if (!token) {
+      return res.sendError({ 
+        message: "Access denied. No token provided.", 
+        name: "TokenNotFoundError" 
+      }, 401);
+    }
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded; // Attach decoded token to request object
 
     next(); // Proceed to the next middleware or route handler
   } catch (err) {
     err.statusCode = 401;
-    err.data = { tokenProvided: true };
+    err.data = { tokenProvided: !!token }; // Will be true if token was provided but invalid
     return res.sendError(err, 401);
   }
 }

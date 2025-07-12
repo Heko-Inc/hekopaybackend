@@ -17,6 +17,14 @@ exports.register = async (req, res) => {
 
 exports.login = async (req, res) => {
     const result = await AuthService.login(req.body);
+        // Set JWT in HttpOnly cookie
+    res.cookie("token", result.token, {
+      httpOnly: false,
+      secure: true, // Set to true in production with HTTPS
+      sameSite: "None", // Required for cross-origin requests
+      maxAge: 3600000 * 24 * 180, // 1 hour in milliseconds
+      path: "/",
+    });
     res.sendResponse(result, "Login successful");
 };
 
